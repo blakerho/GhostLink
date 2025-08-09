@@ -134,14 +134,15 @@ def bits_to_symbols(bits: List[int], order: int) -> List[int]:
     if order not in (4, 8):
         raise ValueError("order must be 4 or 8")
     k = 2 if order == 4 else 3
-    pad = (-len(bits)) % k
+    bits_copy = bits[:]
+    pad = (-len(bits_copy)) % k
     if pad:
-        bits += [0] * pad
+        bits_copy += [0] * pad
     symbols = []
-    for i in range(0, len(bits), k):
+    for i in range(0, len(bits_copy), k):
         val = 0
         for j in range(k):
-            val = (val << 1) | bits[i + j]
+            val = (val << 1) | bits_copy[i + j]
         symbols.append(val)  # 0..3 or 0..7
     return symbols
 

@@ -1,0 +1,13 @@
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from GhostLink import bits_to_symbols
+
+
+def test_bits_to_symbols_preserves_input_list():
+    bits = [1, 0, 1, 1]
+    original = bits[:]
+    symbols = bits_to_symbols(bits, 8)
+    assert bits == original
+    assert symbols == [5, 4]
