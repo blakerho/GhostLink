@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-GhostLink: Stealth audio encoder for embedding structured text in music.
+Gibberlink: Stealth audio encoder for embedding structured text in music.
 Dense-by-default 8-FSK with FEC, codec-safe frequency sets, and SQLite+hash dedupe.
 
 Modes:
@@ -9,10 +9,10 @@ Modes:
   - dir:  encode all UTF-8 text files in a directory (non-recursive)
 
 Examples:
-  ghostlink text "trust_no_one" out/
+  gibberlink text "trust_no_one" out/
   python -m ghostlink file ./secret.txt out/ --dense
-  ghostlink dir ./payloads/ out/ --sparse --baud 60
-  ghostlink text "msg" out/ --mix-profile streaming --amp 0.04 --verbose
+  gibberlink dir ./payloads/ out/ --sparse --baud 60
+  gibberlink text "msg" out/ --mix-profile streaming --amp 0.04 --verbose
 """
 
 import argparse
@@ -402,7 +402,7 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
 # ------------------------
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="GhostLink: encode text into dense/sparse FSK audio for stealth embedding.",
+        description="Gibberlink: encode text into dense/sparse FSK audio for stealth embedding.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     # Positional: mode, input, outdir (per user preference)

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-GhostLink Decoder: Recover text from FSK audio produced by the `ghostlink` encoder.
+Gibberlink Decoder: Recover text from FSK audio produced by the `gibberlink` encoder.
 
 Examples:
-  ghostlink-decode ./message.wav
+  gibberlink-decode ./message.wav
   python -m ghostlink.decoder ./message.wav
 """
 
@@ -181,7 +181,7 @@ def decode_wav(path: str, baud: float, dense: bool, mix_profile: str,
 # ------------------------
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="GhostLink decoder: recover text from FSK audio.",
+        description="Gibberlink decoder: recover text from FSK audio.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     p.add_argument("wav", help="Input WAV file")
