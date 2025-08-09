@@ -11,6 +11,21 @@ GhostLink hides structured text inside audio as carefully band-placed FSK tones 
 - **No external dependencies:** pure Python 3 standard library.
 - **Three input modes:** CLI text, single file, or directory of text files.
 
+## Project Layout
+
+- `ghostlink/` – core package (`__main__.py`, `decoder.py`, `profiles.py`)
+- `tests/` – unit tests validating encoding/decoding
+- `pyproject.toml` – packaging and script entry points
+- `requirements.txt` – placeholder for future dependencies
+
+```
+GhostLink/
+├── ghostlink/
+├── tests/
+├── pyproject.toml
+└── requirements.txt
+```
+
 ---
 
 ## Install
