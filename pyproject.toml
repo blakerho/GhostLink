@@ -7,7 +7,7 @@ name = "gibberlink"
 version = "0.1.0"
 description = "Stealth audio encoder for embedding structured text in music"
 readme = "README.md"
-authors = [{name = "GhostLink Contributors"}]
+authors = [{name = "Gibberlink Contributors"}]
 license = {text = "MIT"}
 requires-python = ">=3.8"
 dependencies = []
