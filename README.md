@@ -57,6 +57,10 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
 \t# 5) Studio profile (a bit brighter), higher baud
 \t./ghostlink.py text "msg" out/ --mix-profile studio --baud 120
 
+### Decoding
+\t# Recover text from a GhostLink WAV
+\t./decoder.py out/msg_ce67eacbbb93.wav
+
 ---
 
 ## Important Options
@@ -117,10 +121,13 @@ Filenames include the first 12 hex chars of the framed payload hash (sha256) for
 \t    [--dense|--sparse] [--mix-profile streaming|studio]
 \t    [--preamble 0.8] [--gap 0] [--interleave 4] [--repeats 2] [--ramp 5]
 \t    [-v|--verbose]
+\t./decoder.py <wavfile>
+\t    [--baud 90] [--dense|--sparse] [--mix-profile streaming|studio]
+\t    [--preamble 0.8] [--interleave 4] [--repeats 2] [-v|--verbose]
 
 **Return codes:**
-- `0`   success  
-- `2`   validation or runtime error  
+- `0`   success
+- `2`   validation or runtime error
 - `130` interrupted (Ctrl-C)
 
 ---
