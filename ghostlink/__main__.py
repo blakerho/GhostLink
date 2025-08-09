@@ -219,7 +219,7 @@ def write_wav(path: str, sr: int, pcm: bytes) -> None:
 # Framing / payload
 # ------------------------
 def build_payload(user_bytes: bytes) -> bytes:
-    magic = b"GL1"
+    magic = b"GIB"
     length = struct.pack(">I", len(user_bytes))
     crc = struct.pack(">I", binascii.crc32(user_bytes) & 0xFFFFFFFF)
     return magic + length + user_bytes + crc
