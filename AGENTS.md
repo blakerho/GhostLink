@@ -3,10 +3,10 @@
 ## `AGENTS.md`
 
 ```markdown
-# GhostLink Agents — How the Tones Operate
+# Gibberlink Agents — How the Tones Operate
 
 ## Who Are the Agents?
-Each GhostLink **carrier frequency** is an "agent" in your audio.  
+Each Gibberlink **carrier frequency** is an "agent" in your audio.
 They each have a specific job: to carry **symbols** of your hidden message without attracting attention.
 
 - In **8-FSK mode**, there are eight agents.
@@ -64,6 +64,6 @@ This is the agent team’s mission ID — unique for each message.
 ---
 
 ## Final Word
-Think of GhostLink’s tones as an **undercover team**:  
+Think of Gibberlink’s tones as an **undercover team**:
 They slip into your track, complete their mission quietly, and leave without anyone knowing they were there — unless the right decoder calls them out.
 
