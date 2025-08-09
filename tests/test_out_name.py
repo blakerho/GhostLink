@@ -26,6 +26,9 @@ def test_encode_bytes_to_wav_out_name(tmp_path):
     assert skipped is False
     assert Path(path).name == "custom.wav"
     assert (tmp_path / "custom_slow25.wav").exists()
+    assert (tmp_path / "custom_slow50.wav").exists()
+    assert (tmp_path / "custom_slow100.wav").exists()
+    assert (tmp_path / "custom.mid").exists()
     assert (tmp_path / HISTORY_DB).exists()
 
 
@@ -51,6 +54,7 @@ def test_cli_out_name(tmp_path):
     assert "cli_slow25.wav" in slow
     assert "cli_slow50.wav" in slow
     assert "cli_slow100.wav" in slow
+    assert (tmp_path / "cli.mid").exists()
 
 
 def test_cli_out_name_rejected_for_dir(tmp_path):

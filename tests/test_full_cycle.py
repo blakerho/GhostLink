@@ -1,4 +1,10 @@
-from gibberlink import encode_bytes_to_wav
+from gibberlink import (
+    encode_bytes_to_wav,
+    build_payload,
+    hamming74_encode_bytes,
+    interleave,
+    bits_to_symbols,
+)
 from gibberlink.decoder import decode_wav
 from gibberlink.constants import HISTORY_DB
 from pathlib import Path
@@ -27,9 +33,15 @@ def test_full_encode_decode_cycle(tmp_path):
     assert (out_dir / HISTORY_DB).exists()
     midi_path = Path(path).with_suffix(".mid")
     assert midi_path.exists()
+    for suffix in ("slow25", "slow50", "slow100"):
+        assert Path(path).with_name(Path(path).stem + f"_{suffix}.wav").exists()
     mid = MidiFile(midi_path)
     notes = [msg for track in mid.tracks for msg in track if msg.type == "note_on"]
-    assert notes
+    payload = build_payload(message)
+    bits = hamming74_encode_bytes(payload)
+    bits = interleave(bits, 2)
+    symbols = bits_to_symbols(bits, 8)
+    assert len(notes) == len(symbols)
     decoded = decode_wav(
         path=path,
         baud=200.0,

@@ -66,8 +66,11 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
 	# 4) Louder lab test run (don’t do this in a real mix)
 	ghostlink text "HELLO" out/ --amp 0.2 -v
 
-	# 5) Studio profile (a bit brighter), higher baud
-	ghostlink text "msg" out/ --mix-profile studio --baud 120
+        # 5) Studio profile (a bit brighter), higher baud
+        ghostlink text "msg" out/ --mix-profile studio --baud 120
+
+        # 6) Custom filename; generates WAV, slowed variants, and MIDI
+        ghostlink text "hi" out/ --out-name secret.wav
 
 ### Decoding
 	# Recover text from a GhostLink (GibberLink protocol) WAV
@@ -89,16 +92,23 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
   Repeat the payload N times (default 2). Improves recovery odds in noisy music beds.
 - `--amp <float>`  
   Peak amplitude [0..1]. Keep low (0.03–0.08) to remain inaudible in a dense mix.
-- `--preamble <seconds>`  
+- `--preamble <seconds>`
   Training sequence to aid future decoder locking (default 0.8 s).
-- `--gap <ms>`, `--ramp <ms>`  
+- `--gap <ms>`, `--ramp <ms>`
   Intersymbol gap (usually 0) and raised-cosine ramp per symbol to avoid clicks.
+- `--out-name <file.wav>`
+  Override the auto-generated base name. Useful when embedding in a project;
+  slowed variants (`*_slow25.wav`, `*_slow50.wav`, `*_slow100.wav`) and the
+  companion MIDI file use the same prefix.
 
 ---
 
 ## Output
 Each encode produces:
 - `out/<base>_<sha12>.wav` — The audio payload
+- `out/<base>_<sha12>_slow25.wav` — 25% slower (duration ×4/3)
+- `out/<base>_<sha12>_slow50.wav` — 50% slower (duration ×2)
+- `out/<base>_<sha12>_slow100.wav` — 100% slower (duration ×4)
 - `out/<base>_<sha12>.mid` — MIDI rendering of the carrier sequence
 - `out/ghostlink_history.db` — SQLite history of encodes
 
