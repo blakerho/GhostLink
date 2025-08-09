@@ -1,8 +1,7 @@
 # GhostLink — Stealth Text-to-Audio Encoder (Dense 8-FSK)
 
 ## Overview
-GhostLink hides structured text inside audio as carefully band-placed FSK tones designed to survive consumer playback chains and lossy streaming codecs.  
-It defaults to **dense 8-FSK** with forward error correction, interleaving, and repeats for robustness; a 4-FSK mode is available for extra margin.
+GhostLink hides structured text inside audio as carefully band-placed FSK tones designed to survive consumer playback chains and lossy streaming codecs. It defaults to **dense 8-FSK** with forward error correction, interleaving, and repeats for robustness; a 4-FSK mode is available for extra margin.
 
 ### Key Properties
 - **Codec-safe by design:** carriers live in 1.5–5 kHz (“streaming” profile, default) or 1.8–6 kHz (“studio”).
@@ -19,7 +18,6 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
 ### Prerequisites
 - Python 3.8+ (recommended 3.10+)
 - macOS, Linux, or Windows
-- **ffmpeg** is NOT required (GhostLink writes standard PCM WAV)
 
 ### Clone & Prepare
 ```
