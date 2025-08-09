@@ -84,6 +84,8 @@ ghostlink text "msg" out/ --mix-profile studio --baud 120
 - `--mix-profile {streaming|studio}`  
   - **streaming** (default): carriers in ~1.5–5 kHz for survival across MP3/AAC/OGG + cheap speakers  
   - **studio**: ~1.8–6 kHz, slightly brighter; still conservative
+- `--samplerate <int>`  
+  Output sample rate in Hz (default 48000). Range: 16000–192000. Higher rates provide more frequency resolution but larger files.
 - `--baud <float>`  
   Symbols per second (default 90). Raise for shorter files, lower for maximum safety.
 - `--interleave <int>`  
@@ -101,10 +103,15 @@ ghostlink text "msg" out/ --mix-profile studio --baud 120
 
 ## Output
 Each encode produces:
-- `out/<base>_<sha12>.wav` — The audio payload
+- `out/<base>_<sha12>.wav` — The audio payload (16-bit mono WAV)
 - `out/ghostlink_history.db` — SQLite history of encodes
 
 Filenames include the first 12 hex chars of the framed payload hash (sha256) for traceability.
+
+### Audio Format
+- **Current limitation**: GhostLink currently outputs 16-bit mono WAV files only
+- **Decoder requirement**: Only accepts 16-bit mono WAV files for decoding
+- **Future enhancement**: 32-bit and stereo support planned for future releases
 
 ---
 
@@ -141,6 +148,12 @@ Filenames include the first 12 hex chars of the framed payload hash (sha256) for
       [--baud 90] [--dense|--sparse] [--mix-profile streaming|studio]
       [--preamble 0.8] [--interleave 4] [--repeats 2] [-v|--verbose]
 ```
+
+**Audio Format Notes:**
+- Output is always 16-bit mono WAV at the specified sample rate
+- Decoder only accepts 16-bit mono WAV files
+- Sample rate can be configured (16kHz-192kHz range)
+
 **Return codes:**
 - `0`   success
 - `2`   validation or runtime error
@@ -154,6 +167,9 @@ Filenames include the first 12 hex chars of the framed payload hash (sha256) for
 1. Confining carriers to a proven codec-survivable band.
 2. Spacing carriers to reduce intermod/aliasing issues.
 3. Using interleaving + repeats so partial losses don’t kill the message.
+
+**Q:** Why only 16-bit mono WAV output?  
+**A:** Current implementation prioritizes simplicity and compatibility. 16-bit mono is universally supported and sufficient for the FSK encoding. 32-bit float and stereo support are planned for future releases to enable higher-quality embedding in professional workflows.
 
 **Q:** Will you provide a decoder?  
 **A:** Yes—next iteration can include Goertzel-based symbol detection, timing recovery, and CRC/FEC verification as a sister tool.

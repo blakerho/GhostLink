@@ -104,13 +104,29 @@ def bits_to_bytes(bits: List[int]) -> bytes:
 # ------------------------
 def read_wav(path: str) -> (List[float], int):
     with wave.open(path, "rb") as wf:
-        if wf.getnchannels() != 1 or wf.getsampwidth() != 2:
-            raise ValueError("Only mono 16-bit WAV supported")
+        channels = wf.getnchannels()
+        sampwidth = wf.getsampwidth()
         sr = wf.getframerate()
         n = wf.getnframes()
         raw = wf.readframes(n)
-        samples = struct.unpack("<%dh" % n, raw)
-        return [s / 32768.0 for s in samples], sr
+        
+        if channels not in (1, 2):
+            raise ValueError(f"Unsupported channel count: {channels} (only mono/stereo supported)")
+        if sampwidth not in (2, 4):
+            raise ValueError(f"Unsupported sample width: {sampwidth} bytes (only 16-bit/32-bit supported)")
+        
+        if sampwidth == 4:  # 32-bit float
+            samples = struct.unpack("<" + "f" * (n * channels), raw)
+        else:  # 16-bit PCM
+            samples = struct.unpack("<" + "h" * (n * channels), raw)
+            # Convert to float range [-1.0, 1.0]
+            samples = [s / 32768.0 for s in samples]
+        
+        if channels == 2:
+            # For stereo, take left channel only (every other sample starting from 0)
+            samples = [samples[i] for i in range(0, len(samples), 2)]
+        
+        return samples, sr
 
 def detect_symbols(samples: List[float], sr: int, baud: float, preamble_s: float, freqs: List[float]) -> List[int]:
     start = int(round(preamble_s * sr))

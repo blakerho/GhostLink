@@ -176,43 +176,78 @@ def raised_cosine_env(total_samples: int, ramp_samples: int) -> List[float]:
     return env
 
 def synth_tone(freq: float, sr: int, duration_s: float, amp: float,
-               phase0: float, ramp_ms: float = 5.0) -> Tuple[bytes, float]:
+               phase0: float, ramp_ms: float = 5.0, bit_depth: int = 16) -> Tuple[bytes, float]:
     total = max(1, int(round(duration_s * sr)))
     ramp = int((ramp_ms / 1000.0) * sr)
     env = raised_cosine_env(total, ramp)
     two_pi_over_sr = 2.0 * math.pi / sr
     out = []
     phase = phase0
-    for i in range(total):
-        s = math.sin(phase) * amp * env[i]
-        val = max(-32768, min(32767, int(round(s * 32767.0))))
-        out.append(val)
-        phase += two_pi_over_sr * freq
-        if phase > 1e6:
-            phase = math.fmod(phase, 2.0 * math.pi)
-    return struct.pack("<" + "h" * len(out), *out), phase
+    
+    if bit_depth == 32:
+        # 32-bit float format
+        for i in range(total):
+            s = math.sin(phase) * amp * env[i]
+            out.append(s)  # Keep as float for 32-bit
+            phase += two_pi_over_sr * freq
+            if phase > 1e6:
+                phase = math.fmod(phase, 2.0 * math.pi)
+        return struct.pack("<" + "f" * len(out), *out), phase
+    else:
+        # 16-bit PCM format (original)
+        for i in range(total):
+            s = math.sin(phase) * amp * env[i]
+            val = max(-32768, min(32767, int(round(s * 32767.0))))
+            out.append(val)
+            phase += two_pi_over_sr * freq
+            if phase > 1e6:
+                phase = math.fmod(phase, 2.0 * math.pi)
+        return struct.pack("<" + "h" * len(out), *out), phase
 
 def symbols_to_audio(symbols: List[int], freqs: List[float], sr: int, baud: float,
                      amp: float, phase0: float = 0.0,
-                     gap_ms: float = 0.0, ramp_ms: float = 5.0) -> Tuple[bytes, float]:
+                     gap_ms: float = 0.0, ramp_ms: float = 5.0, bit_depth: int = 16) -> Tuple[bytes, float]:
     sym_dur = 1.0 / float(baud)
     gap_s = max(0.0, gap_ms / 1000.0)
     buff = bytearray()
     phase = phase0
     for s in symbols:
         f = freqs[s]
-        tone, phase = synth_tone(f, sr, sym_dur, amp, phase, ramp_ms=ramp_ms)
+        tone, phase = synth_tone(f, sr, sym_dur, amp, phase, ramp_ms=ramp_ms, bit_depth=bit_depth)
         buff.extend(tone)
         if gap_s > 0:
-            silence, phase = synth_tone(0.0, sr, gap_s, 0.0, phase, ramp_ms=0.0)
+            silence, phase = synth_tone(0.0, sr, gap_s, 0.0, phase, ramp_ms=0.0, bit_depth=bit_depth)
             buff.extend(silence)
     return bytes(buff), phase
 
-def write_wav(path: str, sr: int, pcm: bytes) -> None:
+def write_wav(path: str, sr: int, pcm: bytes, bit_depth: int = 16, channels: int = 1) -> None:
     with wave.open(path, "wb") as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(2)
+        wf.setnchannels(channels)
+        if bit_depth == 32:
+            wf.setsampwidth(4)  # 4 bytes for 32-bit float
+        else:
+            wf.setsampwidth(2)  # 2 bytes for 16-bit PCM
         wf.setframerate(sr)
+        
+        if channels == 2:
+            # For stereo, duplicate mono signal to both channels
+            if bit_depth == 32:
+                # Unpack float samples, duplicate each, repack
+                sample_count = len(pcm) // 4
+                samples = struct.unpack("<" + "f" * sample_count, pcm)
+                stereo_samples = []
+                for sample in samples:
+                    stereo_samples.extend([sample, sample])  # L, R
+                pcm = struct.pack("<" + "f" * len(stereo_samples), *stereo_samples)
+            else:
+                # Unpack 16-bit samples, duplicate each, repack
+                sample_count = len(pcm) // 2
+                samples = struct.unpack("<" + "h" * sample_count, pcm)
+                stereo_samples = []
+                for sample in samples:
+                    stereo_samples.extend([sample, sample])  # L, R
+                pcm = struct.pack("<" + "h" * len(stereo_samples), *stereo_samples)
+        
         wf.writeframes(pcm)
 
 # ------------------------
@@ -224,14 +259,14 @@ def build_payload(user_bytes: bytes) -> bytes:
     crc = struct.pack(">I", binascii.crc32(user_bytes) & 0xFFFFFFFF)
     return magic + length + user_bytes + crc
 
-def preamble(freqs: List[float], sr: int, amp: float, seconds: float) -> Tuple[bytes, float]:
+def preamble(freqs: List[float], sr: int, amp: float, seconds: float, bit_depth: int = 16) -> Tuple[bytes, float]:
     if seconds <= 0:
         return b"", 0.0
     per = max(0.05, seconds / len(freqs))
     out = bytearray()
     phase = 0.0
     for f in freqs:
-        t, phase = synth_tone(f, sr, per, amp, phase)
+        t, phase = synth_tone(f, sr, per, amp, phase, bit_depth=bit_depth)
         out.extend(t)
     return bytes(out), phase
 
@@ -312,7 +347,7 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
                         samplerate: int, baud: float, amp: float,
                         dense: bool, mix_profile: str,
                         gap_ms: float, preamble_s: float, interleave_depth: int,
-                        repeats: int, ramp_ms: float) -> Tuple[str, bool]:
+                        repeats: int, ramp_ms: float, bit_depth: int = 16, channels: int = 1) -> Tuple[str, bool]:
     """
     Returns (output_path, skipped_by_dedupe)
     """
@@ -350,7 +385,8 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
     total_symbols = len(symbols) * max(1, repeats)
     est_s = total_symbols / baud + preamble_s
     logging.info(f"[i] Mode={'8-FSK' if dense else '4-FSK'} | Freqs={','.join(f'{f:.0f}' for f in freqs)}Hz "
-                 f"| SR={samplerate}Hz | Baud={baud:.1f} | Amp={amp:.3f} | Interleave={interleave_depth} | Repeats={repeats}")
+                 f"| SR={samplerate}Hz | Baud={baud:.1f} | Amp={amp:.3f} | {bit_depth}-bit {'stereo' if channels == 2 else 'mono'} "
+                 f"| Interleave={interleave_depth} | Repeats={repeats}")
     logging.info(f"[i] Payload bytes={len(user_bytes)} | Framed bytes≈{len(payload)} | Symbols={len(symbols)} "
                  f"| Est duration≈{est_s:.1f}s")
 
@@ -358,11 +394,11 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
     pcm = bytearray()
     phase = 0.0
     if preamble_s > 0.0:
-        pre_pcm, phase = preamble(freqs, samplerate, amp, preamble_s)
+        pre_pcm, phase = preamble(freqs, samplerate, amp, preamble_s, bit_depth=bit_depth)
         pcm.extend(pre_pcm)
     for _ in range(max(1, repeats)):
         tones, phase = symbols_to_audio(symbols, freqs, samplerate, baud, amp, phase,
-                                       gap_ms=gap_ms, ramp_ms=ramp_ms)
+                                       gap_ms=gap_ms, ramp_ms=ramp_ms, bit_depth=bit_depth)
         pcm.extend(tones)
 
     # Filename includes short hash for reproducibility
@@ -371,7 +407,7 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
     out_path = os.path.join(out_dir, out_name)
 
     try:
-        write_wav(out_path, samplerate, bytes(pcm))
+        write_wav(out_path, samplerate, bytes(pcm), bit_depth=bit_depth, channels=channels)
     except Exception as e:
         logging.error(f"[x] Failed to write WAV: {e}")
         raise
@@ -413,6 +449,11 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--repeats", type=int, default=2, help="Repeat the encoded stream N times (>=1).")
     p.add_argument("--ramp", type=float, default=5.0, help="Raised-cosine ramp per symbol (ms).")
     p.add_argument("--verbose", "-v", action="store_true", help="Verbose logging.")
+    # Audio format options
+    p.add_argument("--bit-depth", choices=[16, 32], type=int, default=16, 
+                   help="Output bit depth: 16 (PCM) or 32 (float).")
+    p.add_argument("--channels", choices=[1, 2], type=int, default=1,
+                   help="Output channels: 1 (mono) or 2 (stereo).")
     args = p.parse_args()
 
     # Resolve dense/sparse default & conflicts
@@ -489,7 +530,9 @@ def main() -> int:
                 preamble_s=args.preamble,
                 interleave_depth=args.interleave,
                 repeats=args.repeats,
-                ramp_ms=args.ramp
+                ramp_ms=args.ramp,
+                bit_depth=args.bit_depth,
+                channels=args.channels
             )
             if was_skipped:
                 skipped += 1
