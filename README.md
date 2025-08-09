@@ -38,8 +38,8 @@ GhostLink/
 ```bash
 git clone https://github.com/blakerho/GhostLink.git
 cd GhostLink
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+python3 -m venv .venv
+source .venv/bin/activate  # Windows is trash
 pip install .
 ```
 ---
