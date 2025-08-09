@@ -1,5 +1,6 @@
 from gibberlink import encode_bytes_to_wav
 from gibberlink.__main__ import db_init
+from gibberlink.constants import HISTORY_DB
 import sqlite3
 
 
@@ -21,7 +22,7 @@ def test_legacy_db_migrates(tmp_path):
         repeats=1,
         ramp_ms=5.0,
     )
-    new_db = tmp_path / "gibberlink_history.db"
+    new_db = tmp_path / HISTORY_DB
     assert new_db.exists()
     assert not legacy.exists()
     conn = sqlite3.connect(new_db)
