@@ -9,10 +9,10 @@ Modes:
   - dir:  encode all UTF-8 text files in a directory (non-recursive)
 
 Examples:
-  ./ghostlink.py text "trust_no_one" out/
-  ./ghostlink.py file ./secret.txt out/ --dense
-  ./ghostlink.py dir ./payloads/ out/ --sparse --baud 60
-  ./ghostlink.py text "msg" out/ --mix-profile streaming --amp 0.04 --verbose
+  ghostlink text "trust_no_one" out/
+  ghostlink file ./secret.txt out/ --dense
+  ghostlink dir ./payloads/ out/ --sparse --baud 60
+  ghostlink text "msg" out/ --mix-profile streaming --amp 0.04 --verbose
 """
 
 import argparse

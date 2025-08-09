@@ -20,20 +20,19 @@ GhostLink hides structured text inside audio as carefully band-placed FSK tones 
 - macOS, Linux, or Windows
 
 ### Clone & Prepare
-```
-  git clone https://github.com/13alvone/GhostLink.git
-  cd GhostLink
-  python3 -m venv .venv
-  source .venv/bin/activate     # Windows: .venv\Scripts\activate
-  pip install -r requirements.txt
-  chmod +x ghostlink.py
+```bash
+git clone https://github.com/13alvone/GhostLink.git
+cd GhostLink
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install .
 ```
 ---
 
 ## Usage
 
 ### General Form
-```./ghostlink.py <mode> <input> <outdir> [options]```
+```ghostlink <mode> <input> <outdir> [options]```
 
 ### Modes
 - `text` — Encode a short message passed on CLI
@@ -43,24 +42,24 @@ GhostLink hides structured text inside audio as carefully band-placed FSK tones 
 ### Examples
 ```
 # 1) Quick start: CLI text -> out/
-./ghostlink.py text "trust_no_one" out/
+ghostlink text "trust_no_one" out/
 
 # 2) Single file, dense defaults, streaming-safe band
-./ghostlink.py file ./secret.txt out/
+ghostlink file ./secret.txt out/
 
 # 3) Directory batch; sparse 4-FSK; slightly slower baud
-./ghostlink.py dir ./payloads out/ --sparse --baud 60
+ghostlink dir ./payloads out/ --sparse --baud 60
 
 # 4) Louder lab test run (don’t do this in a real mix)
-./ghostlink.py text "HELLO" out/ --amp 0.2 -v
+ghostlink text "HELLO" out/ --amp 0.2 -v
 
 # 5) Studio profile (a bit brighter), higher baud
-./ghostlink.py text "msg" out/ --mix-profile studio --baud 120
+ghostlink text "msg" out/ --mix-profile studio --baud 120
 ```
 
 ### Decoding
 # Recover text from a GhostLink WAV
-```./decoder.py out/msg_ce67eacbbb93.wav```
+```ghostlink-decode out/msg_ce67eacbbb93.wav```
 
 ---
 
@@ -118,12 +117,12 @@ Filenames include the first 12 hex chars of the framed payload hash (sha256) for
 
 ## CLI Reference
 ```
-  ./ghostlink.py <mode> <input> <outdir>
+  ghostlink <mode> <input> <outdir>
       [--samplerate 48000] [--baud 90] [--amp 0.06]
       [--dense|--sparse] [--mix-profile streaming|studio]
       [--preamble 0.8] [--gap 0] [--interleave 4] [--repeats 2] [--ramp 5]
       [-v|--verbose]
-  ./decoder.py <wavfile>
+  ghostlink-decode <wavfile>
       [--baud 90] [--dense|--sparse] [--mix-profile streaming|studio]
       [--preamble 0.8] [--interleave 4] [--repeats 2] [-v|--verbose]
 ```
