@@ -298,6 +298,15 @@ def db_insert(db_path: str, mode: str, input_ref: str, h: str, bytes_len: int,
     finally:
         conn.close()
 
+
+def db_remove_hash(db_path: str, h: str) -> None:
+    conn = sqlite3.connect(db_path)
+    try:
+        conn.execute("DELETE FROM encodes WHERE framed_sha256 = ?", (h,))
+        conn.commit()
+    finally:
+        conn.close()
+
 # ------------------------
 # Core encode
 # ------------------------
@@ -318,9 +327,18 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
     db_init(db_path)
 
     exists, prior_path = db_has_hash(db_path, framed_hash)
-    if exists and prior_path and os.path.isfile(prior_path):
-        logging.info(f"[i] Duplicate payload detected (sha256={framed_hash[:12]}). Skipping; existing file: {prior_path}")
-        return prior_path, True
+    if exists:
+        if prior_path and os.path.isfile(prior_path):
+            logging.info(f"[i] Duplicate payload detected (sha256={framed_hash[:12]}). Skipping; existing file: {prior_path}")
+            return prior_path, True
+        # Stale entry: hash exists in DB but file is missing
+        logging.info(
+            f"[i] Stale DB entry detected for sha256={framed_hash[:12]} (missing file: {prior_path}). Cleaning up."
+        )
+        try:
+            db_remove_hash(db_path, framed_hash)
+        except Exception as e:
+            logging.warning(f"[!] Failed to remove stale DB entry: {e}")
 
     freqs = freq_profile(dense, mix_profile)
     order = 8 if dense else 4
