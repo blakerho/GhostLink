@@ -445,15 +445,24 @@ def validate_args(args: argparse.Namespace) -> None:
 
 def iter_inputs(mode: str, input_arg: str) -> Iterable[Tuple[str, bytes]]:
     if mode == "text":
-        yield ("literal", read_utf8_bytes(input_arg, is_literal=True))
+        try:
+            yield ("literal", read_utf8_bytes(input_arg, is_literal=True))
+        except Exception as e:
+            logging.error(f"[x] Skipping literal input: {e}")
     elif mode == "file":
-        yield (os.path.basename(input_arg), read_utf8_bytes(input_arg, is_literal=False))
+        try:
+            yield (os.path.basename(input_arg), read_utf8_bytes(input_arg, is_literal=False))
+        except Exception as e:
+            logging.error(f"[x] Skipping '{input_arg}': {e}")
     else:  # dir
         files = list_text_files(input_arg)
         if not files:
             logging.warning("[!] No text files found to encode.")
         for fp in files:
-            yield (os.path.basename(fp), read_utf8_bytes(fp, is_literal=False))
+            try:
+                yield (os.path.basename(fp), read_utf8_bytes(fp, is_literal=False))
+            except Exception as e:
+                logging.error(f"[x] Skipping '{fp}': {e}")
 
 def main() -> int:
     args = parse_args()
