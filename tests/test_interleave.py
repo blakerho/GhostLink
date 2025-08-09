@@ -1,5 +1,5 @@
-from ghostlink import interleave
-from ghostlink.decoder import deinterleave
+from gibberlink import interleave
+from gibberlink.decoder import deinterleave
 
 
 def test_interleave_roundtrip():

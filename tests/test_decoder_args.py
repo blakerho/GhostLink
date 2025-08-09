@@ -1,7 +1,7 @@
 import sys
 import pytest
 
-from ghostlink import decoder
+from gibberlink import decoder
 
 
 def test_parse_args_rejects_unknown_flag(monkeypatch):

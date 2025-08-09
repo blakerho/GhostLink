@@ -13,14 +13,14 @@ Gibberlink hides structured text inside audio as carefully band-placed FSK tones
 
 ## Project Layout
 
-- `ghostlink/` – core package (`__main__.py`, `decoder.py`, `profiles.py`)
+- `gibberlink/` – core package (`__main__.py`, `decoder.py`, `profiles.py`)
 - `tests/` – unit tests validating encoding/decoding
 - `pyproject.toml` – packaging and script entry points
 - `requirements.txt` – placeholder for future dependencies
 
 ```
 Gibberlink/
-├── ghostlink/
+├── gibberlink/
 ├── tests/
 ├── pyproject.toml
 └── requirements.txt

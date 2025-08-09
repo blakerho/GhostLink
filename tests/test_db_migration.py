@@ -1,5 +1,5 @@
-from ghostlink import encode_bytes_to_wav
-from ghostlink.__main__ import db_init
+from gibberlink import encode_bytes_to_wav
+from gibberlink.__main__ import db_init
 import sqlite3
 
 

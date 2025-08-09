@@ -1,4 +1,4 @@
-from ghostlink import hamming74_encode_nibble, hamming74_encode_bytes
+from gibberlink import hamming74_encode_nibble, hamming74_encode_bytes
 
 
 def test_hamming74_encode_nibble():

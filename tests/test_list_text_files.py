@@ -1,4 +1,4 @@
-from ghostlink import list_text_files
+from gibberlink import list_text_files
 
 def test_list_text_files_returns_sorted_paths(tmp_path):
     names = ["b.txt", "a.txt", "c.md", "d.log", "ignore.bin"]
