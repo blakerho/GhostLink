@@ -7,7 +7,7 @@ from pathlib import Path
 
 def test_parse_payload_bad_magic():
     payload = build_payload(b"hi")
-    bad = b"BAD" + payload[3:]
+    bad = b"BAD" + payload[len(b"GIB"):]
     with pytest.raises(ValueError, match="bad magic"):
         parse_payload(bad)
 
