@@ -8,7 +8,7 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
 - **Codec-safe by design:** carriers live in 1.5–5 kHz (“streaming” profile, default) or 1.8–6 kHz (“studio”).
 - **Dense by default:** 8-FSK + Hamming(7,4) + interleaving + optional repeats.
 - **Hash-based dedupe:** payload frame SHA-256 is the unique key; if a prior identical encode exists on disk, the run is skipped.
-- **SQLite history:** every encode (or skip) is tracked in `ghostlink_history.db` in the output directory (legacy `gibberlink_history.db` files are migrated automatically).
+- **SQLite history:** every encode (or skip) is tracked in a project-root `ghostlink_history.db`, providing a global log across all runs.
 - **Lightweight dependency:** uses `mido` to emit companion MIDI files.
 - **Three input modes:** CLI text, single file, or directory of text files.
 
@@ -110,7 +110,7 @@ Each encode produces:
 - `out/<base>_<sha12>_slow100.wav` — 100% slower (duration ×4)
 - `out/<base>_<sha12>_slow1000.wav` — one-tenth speed (duration ×10)
 - `out/<base>_<sha12>.mid` — MIDI rendering of the carrier sequence
-- `out/ghostlink_history.db` — SQLite history of encodes
+- `ghostlink_history.db` — SQLite history of all encodes, stored in the project root
 
 Filenames include the first 12 hex chars of the framed payload hash (sha256) for traceability.
 

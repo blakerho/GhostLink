@@ -37,7 +37,7 @@ def test_full_encode_decode_cycle(tmp_path):
         ramp_ms=5.0,
     )
     assert skipped is False
-    assert (out_dir / HISTORY_DB).exists()
+    assert (Path.cwd() / HISTORY_DB).exists()
     midi_path = Path(path).with_suffix(".mid")
     assert midi_path.exists()
     for suffix in ("slow25", "slow50", "slow100", "slow1000"):
