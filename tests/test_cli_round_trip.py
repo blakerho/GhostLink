@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 
 
-def test_cli_round_trip(tmp_path):
+def test_cli_round_trip(tmp_path, install_cli):
     msg = "hello"
     # Encode message via CLI
     subprocess.run(
