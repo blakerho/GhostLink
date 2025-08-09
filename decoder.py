@@ -12,6 +12,7 @@ import wave
 import sys
 import os
 from typing import List
+from profiles import freq_profile
 
 # ------------------------
 # Logging
@@ -23,19 +24,6 @@ def setup_logging(verbose: bool) -> None:
         format="%(asctime)s %(levelname)s %(message)s",
         datefmt="%H:%M:%S",
     )
-
-# ------------------------
-# Frequency profiles
-# ------------------------
-def freq_profile(dense: bool, profile: str) -> List[float]:
-    if profile not in ("streaming", "studio"):
-        raise ValueError("mix-profile must be 'streaming' or 'studio'")
-    if dense:
-        return [1500.0, 1900.0, 2300.0, 2700.0, 3100.0, 3500.0, 3900.0, 4300.0] if profile == "streaming" \
-            else [1800.0, 2200.0, 2600.0, 3000.0, 3400.0, 3800.0, 4200.0, 4600.0]
-    else:
-        return [1600.0, 2100.0, 2700.0, 3300.0] if profile == "streaming" \
-            else [1800.0, 2200.0, 2600.0, 3000.0]
 
 # ------------------------
 # Goertzel detector
