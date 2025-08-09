@@ -27,6 +27,7 @@ import sys
 import time
 import wave
 from typing import List, Tuple, Iterable
+from profiles import freq_profile
 
 # ------------------------
 # Logging
@@ -237,24 +238,6 @@ def preamble(freqs: List[float], sr: int, amp: float, seconds: float) -> Tuple[b
 # ------------------------
 # Frequency profiles (codec-safe by design)
 # ------------------------
-def freq_profile(dense: bool, profile: str) -> List[float]:
-    """
-    Profiles chosen to survive typical consumer gear + lossy codecs.
-    streaming: conservative 1.5k–5k band (very codec-safe)
-    studio:    1.8k–6k (still safe; a little brighter)
-    """
-    if profile not in ("streaming", "studio"):
-        raise ValueError("mix-profile must be 'streaming' or 'studio'")
-
-    if dense:
-        # 8-FSK, equal-ish spacing; steer clear of sub-1k mud and >6k rolloff
-        return [1500.0, 1900.0, 2300.0, 2700.0, 3100.0, 3500.0, 3900.0, 4300.0] if profile == "streaming" \
-             else [1800.0, 2200.0, 2600.0, 3000.0, 3400.0, 3800.0, 4200.0, 4600.0]
-    else:
-        # 4-FSK
-        return [1600.0, 2100.0, 2700.0, 3300.0] if profile == "streaming" \
-             else [1800.0, 2200.0, 2600.0, 3000.0]
-
 # ------------------------
 # SQLite logging & dedupe
 # ------------------------
