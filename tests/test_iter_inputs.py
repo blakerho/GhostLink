@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-from gibberlink import iter_inputs, read_utf8_bytes
+from ghostlink import iter_inputs, read_utf8_bytes
 
 
 def test_iter_inputs_skips_unreadable_files(tmp_path, monkeypatch, caplog):
@@ -16,7 +16,7 @@ def test_iter_inputs_skips_unreadable_files(tmp_path, monkeypatch, caplog):
             raise OSError("boom")
         return read_utf8_bytes(src, is_literal)
 
-    monkeypatch.setattr("gibberlink.__main__.read_utf8_bytes", fake_read)
+    monkeypatch.setattr("ghostlink.__main__.read_utf8_bytes", fake_read)
 
     with caplog.at_level(logging.ERROR):
         result = list(iter_inputs("dir", str(tmp_path)))

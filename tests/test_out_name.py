@@ -1,9 +1,8 @@
 import subprocess
-import sys
 from pathlib import Path
 
-from gibberlink import encode_bytes_to_wav
-from gibberlink.constants import HISTORY_DB
+from ghostlink import encode_bytes_to_wav
+from ghostlink.constants import HISTORY_DB
 
 
 def test_encode_bytes_to_wav_out_name(tmp_path):
@@ -36,9 +35,7 @@ def test_cli_out_name(tmp_path):
     msg = "hi"
     subprocess.run(
         [
-            sys.executable,
-            "-m",
-            "gibberlink",
+            "ghostlink",
             "text",
             msg,
             str(tmp_path),
@@ -63,9 +60,7 @@ def test_cli_out_name_rejected_for_dir(tmp_path):
     (in_dir / "a.txt").write_text("hi")
     proc = subprocess.run(
         [
-            sys.executable,
-            "-m",
-            "gibberlink",
+            "ghostlink",
             "dir",
             str(in_dir),
             str(tmp_path),

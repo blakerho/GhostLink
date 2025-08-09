@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Gibberlink Decoder: Recover text from FSK audio produced by the `gibberlink` encoder.
+GhostLink Decoder: Recover text from FSK audio produced by the `ghostlink` encoder.
 
 Examples:
-  gibberlink-decode ./message.wav
-  python -m gibberlink.decoder ./message.wav
+  ghostlink-decode ./message.wav
+  python -m ghostlink.decoder ./message.wav
 """
 
 import argparse

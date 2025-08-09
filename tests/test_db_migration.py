@@ -1,12 +1,12 @@
-from gibberlink import encode_bytes_to_wav
-from gibberlink.__main__ import db_init
-from gibberlink.constants import HISTORY_DB
+from ghostlink import encode_bytes_to_wav
+from ghostlink.__main__ import db_init
+from ghostlink.constants import HISTORY_DB
 import sqlite3
 from pathlib import Path
 
 
 def test_legacy_db_migrates(tmp_path):
-    legacy = tmp_path / "ghostlink_history.db"
+    legacy = tmp_path / "gibberlink_history.db"
     db_init(str(legacy))
     path, _ = encode_bytes_to_wav(
         user_bytes=b"hi",

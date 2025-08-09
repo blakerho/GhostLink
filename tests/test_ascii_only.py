@@ -1,4 +1,4 @@
-from gibberlink.decoder import ascii_only
+from ghostlink.decoder import ascii_only
 
 
 def test_ascii_only_strips_rtf_control_words():
