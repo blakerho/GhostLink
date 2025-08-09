@@ -10,7 +10,7 @@ Modes:
 
 Examples:
   ghostlink text "trust_no_one" out/
-  ghostlink file ./secret.txt out/ --dense
+  python -m ghostlink file ./secret.txt out/ --dense
   ghostlink dir ./payloads/ out/ --sparse --baud 60
   ghostlink text "msg" out/ --mix-profile streaming --amp 0.04 --verbose
 """
