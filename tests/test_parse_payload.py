@@ -1,12 +1,7 @@
-import os
-import sys
 import pytest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from decoder import parse_payload
-from GhostLink import build_payload, encode_bytes_to_wav
-from decoder import decode_wav
+from ghostlink.decoder import parse_payload, decode_wav
+from ghostlink import build_payload, encode_bytes_to_wav
 from pathlib import Path
 
 

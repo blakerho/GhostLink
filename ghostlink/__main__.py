@@ -27,7 +27,7 @@ import sys
 import time
 import wave
 from typing import List, Tuple, Iterable
-from profiles import freq_profile
+from .profiles import freq_profile
 
 # ------------------------
 # Logging

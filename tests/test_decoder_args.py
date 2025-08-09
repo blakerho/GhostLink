@@ -1,9 +1,7 @@
-import os
 import sys
 import pytest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import decoder
+from ghostlink import decoder
 
 
 def test_parse_args_rejects_unknown_flag(monkeypatch):

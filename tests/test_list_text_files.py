@@ -1,8 +1,4 @@
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from GhostLink import list_text_files
+from ghostlink import list_text_files
 
 def test_list_text_files_returns_sorted_paths(tmp_path):
     names = ["b.txt", "a.txt", "c.md", "d.log", "ignore.bin"]

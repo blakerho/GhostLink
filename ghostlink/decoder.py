@@ -12,7 +12,7 @@ import wave
 import sys
 import os
 from typing import List
-from profiles import freq_profile
+from .profiles import freq_profile
 
 # ------------------------
 # Logging

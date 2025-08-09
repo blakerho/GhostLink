@@ -1,10 +1,5 @@
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from GhostLink import interleave
-from decoder import deinterleave
+from ghostlink import interleave
+from ghostlink.decoder import deinterleave
 
 
 def test_interleave_roundtrip():
