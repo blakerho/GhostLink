@@ -16,6 +16,7 @@ Examples:
 """
 
 import argparse
+import array
 import binascii
 import hashlib
 import logging
@@ -216,6 +217,37 @@ def write_wav(path: str, sr: int, pcm: bytes) -> None:
         wf.setframerate(sr)
         wf.writeframes(pcm)
 
+
+def stretch_audio(samples: bytes, factor: float) -> bytes:
+    """Resample PCM data to ``factor`` of its original speed.
+
+    ``factor`` < 1.0 slows the audio. Linear interpolation is used between
+    adjacent samples to avoid artifacts.
+    """
+    if factor <= 0:
+        raise ValueError("factor must be positive")
+
+    src = array.array("h")
+    src.frombytes(samples)
+    n = len(src)
+    if n == 0:
+        return b""
+
+    out_len = int(round(n / factor))
+    out = array.array("h", [0] * out_len)
+    for i in range(out_len):
+        pos = i * factor
+        i0 = int(math.floor(pos))
+        frac = pos - i0
+        if i0 >= n - 1:
+            sample = src[-1]
+        else:
+            s0 = src[i0]
+            s1 = src[i0 + 1]
+            sample = int(round(s0 + (s1 - s0) * frac))
+        out[i] = sample
+    return out.tobytes()
+
 # ------------------------
 # Framing / payload
 # ------------------------
@@ -386,6 +418,29 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
     except Exception as e:
         logging.error(f"[x] Failed to write WAV: {e}")
         raise
+
+    # Read back the written WAV for further processing
+    try:
+        with wave.open(out_path, "rb") as wf:
+            read_sr = wf.getframerate()
+            channels = wf.getnchannels()
+            pcm_data = wf.readframes(wf.getnframes())
+    except Exception as e:
+        logging.error(f"[x] Failed to read back WAV: {e}")
+        raise
+
+    if channels != 1:
+        logging.warning(f"[!] Unexpected channel count: {channels}")
+
+    # Generate slowed variants
+    for factor, suffix in {0.75: "slow25", 0.5: "slow50", 0.25: "slow100"}.items():
+        try:
+            stretched = stretch_audio(pcm_data, factor)
+            slow_path = os.path.splitext(out_path)[0] + f"_{suffix}.wav"
+            write_wav(slow_path, read_sr, stretched)
+            logging.info(f"[i] Wrote: {os.path.abspath(slow_path)} (speed={factor:.2f})")
+        except Exception as e:
+            logging.warning(f"[!] Failed to write slowed WAV {suffix}: {e}")
 
     # Log run
     try:

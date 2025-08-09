@@ -12,8 +12,8 @@ def test_cli_round_trip(tmp_path):
         capture_output=True,
     )
     wav_files = list(Path(tmp_path).glob("*.wav"))
-    assert len(wav_files) == 1
-    wav_path = wav_files[0]
+    assert len(wav_files) == 4
+    wav_path = [p for p in wav_files if "slow" not in p.stem][0]
     # Decode using reference decoder CLI
     proc = subprocess.run(
         [sys.executable, "-m", "gibberlink.decoder", str(wav_path)],
