@@ -6,10 +6,10 @@ from pathlib import Path
 
 
 def test_parse_payload_bad_magic():
-    payload = build_payload(b"hi")
-    bad = b"BAD" + payload[len(b"GIB"):]
+    payload = bytearray(build_payload(b"hi"))
+    payload[:3] = b"BAD"
     with pytest.raises(ValueError, match="bad magic"):
-        parse_payload(bad)
+        parse_payload(bytes(payload))
 
 
 def test_parse_payload_truncated():
