@@ -36,7 +36,7 @@ GhostLink/
 
 ### Clone & Prepare
 ```bash
-git clone https://github.com/13alvone/GhostLink.git
+git clone https://github.com/blakerho/GhostLink.git
 cd GhostLink
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
