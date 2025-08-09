@@ -193,6 +193,18 @@ def synth_tone(freq: float, sr: int, duration_s: float, amp: float,
             if phase > 1e6:
                 phase = math.fmod(phase, 2.0 * math.pi)
         return struct.pack("<" + "f" * len(out), *out), phase
+    elif bit_depth == 24:
+        # 24-bit PCM format
+        pcm_bytes = bytearray()
+        for i in range(total):
+            s = math.sin(phase) * amp * env[i]
+            val = max(-8388608, min(8388607, int(round(s * 8388607.0))))
+            # Pack as 3 bytes little-endian
+            pcm_bytes.extend(struct.pack("<i", val)[:3])  # Take first 3 bytes of 4-byte int
+            phase += two_pi_over_sr * freq
+            if phase > 1e6:
+                phase = math.fmod(phase, 2.0 * math.pi)
+        return bytes(pcm_bytes), phase
     else:
         # 16-bit PCM format (original)
         for i in range(total):
@@ -225,6 +237,8 @@ def write_wav(path: str, sr: int, pcm: bytes, bit_depth: int = 16, channels: int
         wf.setnchannels(channels)
         if bit_depth == 32:
             wf.setsampwidth(4)  # 4 bytes for 32-bit float
+        elif bit_depth == 24:
+            wf.setsampwidth(3)  # 3 bytes for 24-bit PCM
         else:
             wf.setsampwidth(2)  # 2 bytes for 16-bit PCM
         wf.setframerate(sr)
@@ -239,6 +253,14 @@ def write_wav(path: str, sr: int, pcm: bytes, bit_depth: int = 16, channels: int
                 for sample in samples:
                     stereo_samples.extend([sample, sample])  # L, R
                 pcm = struct.pack("<" + "f" * len(stereo_samples), *stereo_samples)
+            elif bit_depth == 24:
+                # For 24-bit, manually duplicate each 3-byte sample
+                stereo_pcm = bytearray()
+                for i in range(0, len(pcm), 3):
+                    sample_bytes = pcm[i:i+3]
+                    stereo_pcm.extend(sample_bytes)  # L channel
+                    stereo_pcm.extend(sample_bytes)  # R channel
+                pcm = bytes(stereo_pcm)
             else:
                 # Unpack 16-bit samples, duplicate each, repack
                 sample_count = len(pcm) // 2
@@ -450,8 +472,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--ramp", type=float, default=5.0, help="Raised-cosine ramp per symbol (ms).")
     p.add_argument("--verbose", "-v", action="store_true", help="Verbose logging.")
     # Audio format options
-    p.add_argument("--bit-depth", choices=[16, 32], type=int, default=16, 
-                   help="Output bit depth: 16 (PCM) or 32 (float).")
+    p.add_argument("--bit-depth", choices=[16, 24, 32], type=int, default=16, 
+                   help="Output bit depth: 16 (PCM), 24 (PCM), or 32 (float).")
     p.add_argument("--channels", choices=[1, 2], type=int, default=1,
                    help="Output channels: 1 (mono) or 2 (stereo).")
     args = p.parse_args()
