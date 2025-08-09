@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from gibberlink import encode_bytes_to_wav
+from ghostlink import encode_bytes_to_wav
 
 
 def _duration(p: Path) -> float:

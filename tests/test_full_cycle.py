@@ -1,12 +1,12 @@
-from gibberlink import (
+from ghostlink import (
     encode_bytes_to_wav,
     build_payload,
     hamming74_encode_bytes,
     interleave,
     bits_to_symbols,
 )
-from gibberlink.decoder import decode_wav
-from gibberlink.constants import HISTORY_DB
+from ghostlink.decoder import decode_wav
+from ghostlink.constants import HISTORY_DB
 from pathlib import Path
 from mido import MidiFile
 

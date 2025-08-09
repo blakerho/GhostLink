@@ -1,4 +1,4 @@
-from gibberlink import bits_to_symbols
+from ghostlink import bits_to_symbols
 
 
 def test_bits_to_symbols_preserves_input_list():

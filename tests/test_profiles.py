@@ -1,10 +1,10 @@
-from gibberlink import freq_profile
-import gibberlink
-from gibberlink import decoder
+from ghostlink import freq_profile
+import ghostlink
+from ghostlink import decoder
 
 
 def test_shared_freq_profile_reference():
-    assert gibberlink.freq_profile is freq_profile
+    assert ghostlink.freq_profile is freq_profile
     assert decoder.freq_profile is freq_profile
     streaming_dense = freq_profile(True, "streaming")
     assert streaming_dense == [

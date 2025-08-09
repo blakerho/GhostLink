@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Gibberlink: Stealth audio encoder for embedding structured text in music.
+GhostLink: Stealth audio encoder for embedding structured text in music.
 Dense-by-default 8-FSK with FEC, codec-safe frequency sets, and SQLite+hash dedupe.
 
 Modes:
@@ -9,10 +9,10 @@ Modes:
   - dir:  encode all UTF-8 text files in a directory (non-recursive)
 
 Examples:
-  gibberlink text "trust_no_one" out/
-  python -m gibberlink file ./secret.txt out/ --dense
-  gibberlink dir ./payloads/ out/ --sparse --baud 60
-  gibberlink text "msg" out/ --mix-profile streaming --amp 0.04 --verbose
+  ghostlink text "trust_no_one" out/
+  python -m ghostlink file ./secret.txt out/ --dense
+  ghostlink dir ./payloads/ out/ --sparse --baud 60
+  ghostlink text "msg" out/ --mix-profile streaming --amp 0.04 --verbose
 """
 
 import argparse
@@ -357,7 +357,7 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
     db_path = os.path.join(out_dir, HISTORY_DB)
     ensure_dir(out_dir)
 
-    legacy_path = os.path.join(out_dir, "ghostlink_history.db")
+    legacy_path = os.path.join(out_dir, "gibberlink_history.db")
     if not os.path.exists(db_path) and os.path.exists(legacy_path):
         try:
             os.rename(legacy_path, db_path)

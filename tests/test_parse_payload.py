@@ -1,7 +1,7 @@
 import pytest
 
-from gibberlink.decoder import parse_payload, decode_wav
-from gibberlink import build_payload, encode_bytes_to_wav
+from ghostlink.decoder import parse_payload, decode_wav
+from ghostlink import build_payload, encode_bytes_to_wav
 from pathlib import Path
 
 
