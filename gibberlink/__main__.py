@@ -28,7 +28,7 @@ import time
 import wave
 from typing import List, Tuple, Iterable
 from .profiles import freq_profile
-from .constants import GIB_MAGIC
+from .constants import GIB_MAGIC, HISTORY_DB
 
 # ------------------------
 # Logging
@@ -321,7 +321,7 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
     framed_hash = sha256_hex(payload)
     crc_hex = f"{binascii.crc32(user_bytes) & 0xFFFFFFFF:08x}"
 
-    db_path = os.path.join(out_dir, "gibberlink_history.db")
+    db_path = os.path.join(out_dir, HISTORY_DB)
     ensure_dir(out_dir)
 
     legacy_path = os.path.join(out_dir, "ghostlink_history.db")
