@@ -1,7 +1,7 @@
 # GhostLink — Stealth Text-to-Audio Encoder (GibberLink Protocol, Dense 8-FSK)
 
 ## Overview
-GhostLink hides structured text inside audio using the **GibberLink** protocol — carefully band-placed FSK tones designed to survive consumer playback chains and lossy streaming codecs.  
+GhostLink hides structured text inside audio using the **GibberLink** protocol — carefully band-placed FSK tones designed to survive consumer playback chains and lossy streaming codecs. It ships with two command-line tools: `ghostlink` for encoding and `ghostlink-decode` for recovering messages.
 It defaults to **dense 8-FSK** with forward error correction, interleaving, and repeats for robustness; a 4-FSK mode is available for extra margin.
 
 ### Key Properties
@@ -14,7 +14,7 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
 
 ## Project Layout
 
-- `ghostlink/` – core package (`__main__.py`, `decoder.py`, `profiles.py`)
+- `ghostlink/` – core package providing the `ghostlink` and `ghostlink-decode` CLIs (`__main__.py`, `decoder.py`, `profiles.py`)
 - `tests/` – unit tests validating encoding/decoding
 - `pyproject.toml` – packaging and script entry points
 - `requirements.txt` – placeholder for future dependencies
@@ -54,17 +54,17 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
 - `dir` — Encode all files in a directory (non-recursive, processed in sorted order for determinism)
 
 ### Examples
-	# 1) Quick start: CLI text -> out/
-	ghostlink text "trust_no_one" out/
+        # 1) Quick start: CLI text -> out/
+        ghostlink text "trust_no_one" out/
 
-	# 2) Single file, dense defaults, streaming-safe band
-	ghostlink file ./secret.txt out/
+        # 2) Single file, dense defaults, streaming-safe band
+        ghostlink file ./secret.txt out/
 
-	# 3) Directory batch; sparse 4-FSK; slightly slower baud
-	ghostlink dir ./payloads out/ --sparse --baud 60
+        # 3) Directory batch; sparse 4-FSK; slightly slower baud
+        ghostlink dir ./payloads out/ --sparse --baud 60
 
-	# 4) Louder lab test run (don’t do this in a real mix)
-	ghostlink text "HELLO" out/ --amp 0.2 -v
+        # 4) Louder lab test run (don’t do this in a real mix)
+        ghostlink text "HELLO" out/ --amp 0.2 -v
 
         # 5) Studio profile (a bit brighter), higher baud
         ghostlink text "msg" out/ --mix-profile studio --baud 120
@@ -72,9 +72,8 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
         # 6) Custom filename; generates WAV, slowed variants, and MIDI
         ghostlink text "hi" out/ --out-name secret.wav
 
-### Decoding
-	# Recover text from a GhostLink (GibberLink protocol) WAV
-	ghostlink-decode out/msg_ce67eacbbb93.wav -v
+        # 7) Decode a GhostLink (GibberLink protocol) WAV back to text
+        ghostlink-decode out/msg_ce67eacbbb93.wav -v
 
 ---
 
