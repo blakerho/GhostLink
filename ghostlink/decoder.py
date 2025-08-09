@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-GhostLink Decoder: Recover text from FSK audio produced by ghostlink.py.
+GhostLink Decoder: Recover text from FSK audio produced by the `ghostlink` CLI.
 """
 
 import argparse
