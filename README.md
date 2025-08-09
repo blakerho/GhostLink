@@ -24,7 +24,7 @@ GhostLink hides structured text inside audio as carefully band-placed FSK tones 
   git clone https://github.com/13alvone/GhostLink.git
   cd GhostLink
   python3 -m venv .venv
-  . .venv/bin/activate     # Windows: .venv\Scripts\activate
+  source .venv/bin/activate     # Windows: .venv\Scripts\activate
   pip install -r requirements.txt
   chmod +x ghostlink.py
 ```
