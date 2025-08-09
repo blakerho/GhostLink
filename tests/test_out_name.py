@@ -40,7 +40,7 @@ def test_encode_bytes_to_wav_out_name(tmp_path):
     slow_dur = _duration(tmp_path / "custom_slow1000.wav")
     assert slow_dur == pytest.approx(main_dur * 10, rel=0.01)
     assert (tmp_path / "custom.mid").exists()
-    assert (tmp_path / HISTORY_DB).exists()
+    assert (Path.cwd() / HISTORY_DB).exists()
 
 
 def test_cli_out_name(tmp_path):
@@ -68,6 +68,7 @@ def test_cli_out_name(tmp_path):
     slow_dur = _duration(tmp_path / "cli_slow1000.wav")
     assert slow_dur == pytest.approx(main_dur * 10, rel=0.01)
     assert (tmp_path / "cli.mid").exists()
+    assert (Path.cwd() / HISTORY_DB).exists()
 
 
 def test_cli_out_name_rejected_for_dir(tmp_path):

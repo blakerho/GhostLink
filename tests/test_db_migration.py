@@ -1,13 +1,10 @@
 from ghostlink import encode_bytes_to_wav
-from ghostlink.__main__ import db_init
 from ghostlink.constants import HISTORY_DB
 import sqlite3
 from pathlib import Path
 
 
-def test_legacy_db_migrates(tmp_path):
-    legacy = tmp_path / "gibberlink_history.db"
-    db_init(str(legacy))
+def test_db_in_project_root(tmp_path):
     path, _ = encode_bytes_to_wav(
         user_bytes=b"hi",
         out_dir=str(tmp_path),
@@ -24,10 +21,10 @@ def test_legacy_db_migrates(tmp_path):
         ramp_ms=5.0,
     )
     assert Path(path).with_suffix(".mid").exists()
-    new_db = tmp_path / HISTORY_DB
-    assert new_db.exists()
-    assert not legacy.exists()
-    conn = sqlite3.connect(new_db)
+    root_db = Path.cwd() / HISTORY_DB
+    assert root_db.exists()
+    assert not (tmp_path / HISTORY_DB).exists()
+    conn = sqlite3.connect(root_db)
     try:
         count = conn.execute("SELECT COUNT(*) FROM encodes").fetchone()[0]
     finally:
