@@ -58,8 +58,14 @@ In the field, more agents means:
 ---
 
 ## Agent Identification in Output Files
-Each `.wav` file name contains the **first 12 hex characters** of the SHA-256 payload hash.  
+Each `.wav` file name contains the **first 12 hex characters** of the SHA-256 payload hash.
 This is the agent team’s mission ID — unique for each message.
+
+After a mission, agents also leave behind slowed briefings and a MIDI transcript:
+
+- `_slow25.wav`, `_slow50.wav`, `_slow100.wav` stretch the run by 4/3×, 2× and 4× for easier analysis.
+- A matching `.mid` file documents each carrier hop.
+- Use `--out-name` to choose the base filename; all companions inherit the same prefix.
 
 ---
 
