@@ -182,7 +182,6 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument("wav", help="Input WAV file")
     p.add_argument("--baud", type=float, default=90.0, help="Symbol rate")
-    p.add_argument("--amp", type=float, default=0.06, help=argparse.SUPPRESS)  # compatibility placeholder
     p.add_argument("--preamble", type=float, default=0.8, help="Preamble seconds to skip")
     p.add_argument("--dense", action="store_true", help="Expect dense 8-FSK (default)")
     p.add_argument("--sparse", action="store_true", help="Expect sparse 4-FSK")
