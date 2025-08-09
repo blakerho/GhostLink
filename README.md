@@ -145,5 +145,5 @@ Filenames include the first 12 hex chars of the framed payload hash (sha256) for
 ---
 
 ## License
-MIT (insert your preferred license here)
+This project is licensed under the [MIT License](LICENSE).
 
