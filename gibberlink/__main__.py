@@ -27,7 +27,7 @@ import struct
 import sys
 import time
 import wave
-from typing import List, Tuple, Iterable
+from typing import List, Tuple, Iterable, Optional
 from .profiles import freq_profile
 from .constants import GIB_MAGIC, HISTORY_DB
 
@@ -345,7 +345,8 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
                         samplerate: int, baud: float, amp: float,
                         dense: bool, mix_profile: str,
                         gap_ms: float, preamble_s: float, interleave_depth: int,
-                        repeats: int, ramp_ms: float) -> Tuple[str, bool]:
+                        repeats: int, ramp_ms: float,
+                        out_name: Optional[str] = None) -> Tuple[str, bool]:
     """
     Returns (output_path, skipped_by_dedupe)
     """
@@ -415,9 +416,14 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
                                        gap_ms=gap_ms, ramp_ms=ramp_ms)
         pcm.extend(tones)
 
-    # Filename includes short hash for reproducibility
+    # Determine output filename
     safe_hint = "".join(c for c in base_name_hint if c.isalnum() or c in ("-", "_"))[:40] or "msg"
-    out_name = f"{safe_hint}_{framed_hash[:12]}.wav"
+    if out_name:
+        if not out_name.lower().endswith(".wav"):
+            out_name = f"{out_name}.wav"
+    else:
+        out_name = f"{safe_hint}_{framed_hash[:12]}.wav"
+    logging.info(f"[i] Output filename: {out_name}")
     out_path = os.path.join(out_dir, out_name)
 
     try:
@@ -501,6 +507,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--interleave", type=int, default=4, help="Interleave depth (1=off). Helps against masking.")
     p.add_argument("--repeats", type=int, default=2, help="Repeat the encoded stream N times (>=1).")
     p.add_argument("--ramp", type=float, default=5.0, help="Raised-cosine ramp per symbol (ms).")
+    p.add_argument("--out-name", help="Explicit output WAV filename (text/file modes only).")
     p.add_argument("--verbose", "-v", action="store_true", help="Verbose logging.")
     args = p.parse_args()
 
@@ -531,6 +538,9 @@ def validate_args(args: argparse.Namespace) -> None:
         sys.exit(2)
     if args.mode in ("file", "dir") and not os.path.exists(args.input):
         logging.error(f"[x] Input path does not exist: {args.input}")
+        sys.exit(2)
+    if args.out_name and args.mode == "dir":
+        logging.error("[x] --out-name is only valid with 'text' or 'file' modes.")
         sys.exit(2)
 
 def iter_inputs(mode: str, input_arg: str) -> Iterable[Tuple[str, bytes]]:
@@ -578,7 +588,8 @@ def main() -> int:
                 preamble_s=args.preamble,
                 interleave_depth=args.interleave,
                 repeats=args.repeats,
-                ramp_ms=args.ramp
+                ramp_ms=args.ramp,
+                out_name=args.out_name
             )
             if was_skipped:
                 skipped += 1
