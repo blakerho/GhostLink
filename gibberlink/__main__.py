@@ -28,6 +28,7 @@ import time
 import wave
 from typing import List, Tuple, Iterable
 from .profiles import freq_profile
+from .constants import GIB_MAGIC
 
 # ------------------------
 # Logging
@@ -219,7 +220,7 @@ def write_wav(path: str, sr: int, pcm: bytes) -> None:
 # Framing / payload
 # ------------------------
 def build_payload(user_bytes: bytes) -> bytes:
-    magic = b"GIB"
+    magic = GIB_MAGIC
     length = struct.pack(">I", len(user_bytes))
     crc = struct.pack(">I", binascii.crc32(user_bytes) & 0xFFFFFFFF)
     return magic + length + user_bytes + crc

@@ -17,6 +17,7 @@ import sys
 import os
 from typing import List
 from .profiles import freq_profile
+from .constants import GIB_MAGIC
 
 # ------------------------
 # Logging
@@ -143,7 +144,7 @@ def decode_symbols(symbols: List[int], order: int, interleave_depth: int) -> byt
 def parse_payload(data: bytes) -> bytes:
     if len(data) < 3 + 4 + 4:
         raise ValueError("payload too short")
-    if data[:3] != b"GIB":
+    if data[:3] != GIB_MAGIC:
         raise ValueError("bad magic")
     length = struct.unpack(">I", data[3:7])[0]
     need = 3 + 4 + length + 4
