@@ -4,7 +4,7 @@ Gibberlink Decoder: Recover text from FSK audio produced by the `gibberlink` enc
 
 Examples:
   gibberlink-decode ./message.wav
-  python -m ghostlink.decoder ./message.wav
+  python -m gibberlink.decoder ./message.wav
 """
 
 import argparse

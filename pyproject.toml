@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ghostlink"
+name = "gibberlink"
 version = "0.1.0"
 description = "Stealth audio encoder for embedding structured text in music"
 readme = "README.md"
@@ -13,5 +13,5 @@ requires-python = ">=3.8"
 dependencies = []
 
 [project.scripts]
-gibberlink = "ghostlink.__main__:main"
-gibberlink-decode = "ghostlink.decoder:main"
+gibberlink = "gibberlink.__main__:main"
+gibberlink-decode = "gibberlink.decoder:main"

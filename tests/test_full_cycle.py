@@ -1,5 +1,5 @@
-from ghostlink import encode_bytes_to_wav
-from ghostlink.decoder import decode_wav
+from gibberlink import encode_bytes_to_wav
+from gibberlink.decoder import decode_wav
 
 
 def test_full_encode_decode_cycle(tmp_path):

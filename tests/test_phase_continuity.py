@@ -1,6 +1,6 @@
 import struct
 
-from ghostlink import symbols_to_audio
+from gibberlink import symbols_to_audio
 
 
 def test_boundary_samples_continuous():

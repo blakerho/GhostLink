@@ -1,4 +1,4 @@
-"""Gibberlink package.
+"""gibberlink package.
 
 This package exposes encoding and decoding helpers as well as the
 ``main`` function used by the ``gibberlink`` console script.

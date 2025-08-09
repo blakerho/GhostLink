@@ -10,7 +10,7 @@ Modes:
 
 Examples:
   gibberlink text "trust_no_one" out/
-  python -m ghostlink file ./secret.txt out/ --dense
+  python -m gibberlink file ./secret.txt out/ --dense
   gibberlink dir ./payloads/ out/ --sparse --baud 60
   gibberlink text "msg" out/ --mix-profile streaming --amp 0.04 --verbose
 """
