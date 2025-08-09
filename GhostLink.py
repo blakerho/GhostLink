@@ -48,11 +48,12 @@ def ensure_dir(path: str) -> None:
 
 def list_text_files(dir_path: str) -> List[str]:
     try:
-        return [
+        # Sort for deterministic processing order
+        return sorted([
             os.path.join(dir_path, f)
             for f in os.listdir(dir_path)
             if os.path.isfile(os.path.join(dir_path, f)) and f.lower().endswith((".txt", ".md", ".log"))
-        ]
+        ])
     except Exception as e:
         logging.error(f"[x] Failed to list directory '{dir_path}': {e}")
         return []

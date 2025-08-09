@@ -39,7 +39,7 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
 ### Modes
 - `text` — Encode a short message passed on CLI
 - `file` — Encode a single UTF-8 text file
-- `dir` — Encode all files in a directory (non-recursive)
+- `dir` — Encode all files in a directory (non-recursive, processed in sorted order for determinism)
 
 ### Examples
 \t# 1) Quick start: CLI text -> out/
