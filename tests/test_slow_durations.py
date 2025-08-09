@@ -28,7 +28,7 @@ def test_slowscaled_durations(tmp_path):
         ramp_ms=5.0,
     )
     main_dur = _duration(Path(path))
-    factors = {"slow25": 4 / 3, "slow50": 2.0, "slow100": 4.0}
+    factors = {"slow25": 4 / 3, "slow50": 2.0, "slow100": 4.0, "slow1000": 10.0}
     for suffix, factor in factors.items():
         slow = Path(path).with_name(Path(path).stem + f"_{suffix}.wav")
         assert slow.exists()

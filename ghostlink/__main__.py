@@ -462,7 +462,7 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
         logging.warning(f"[!] Unexpected channel count: {channels}")
 
     # Generate slowed variants
-    for factor, suffix in {0.75: "slow25", 0.5: "slow50", 0.25: "slow100"}.items():
+    for factor, suffix in {0.75: "slow25", 0.5: "slow50", 0.25: "slow100", 0.1: "slow1000"}.items():
         try:
             stretched = stretch_audio(pcm_data, factor)
             slow_path = os.path.splitext(out_path)[0] + f"_{suffix}.wav"

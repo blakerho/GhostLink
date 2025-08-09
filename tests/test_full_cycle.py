@@ -9,6 +9,13 @@ from ghostlink.decoder import decode_wav
 from ghostlink.constants import HISTORY_DB
 from pathlib import Path
 from mido import MidiFile
+import wave
+import pytest
+
+
+def _duration(p: Path) -> float:
+    with wave.open(str(p), "rb") as wf:
+        return wf.getnframes() / wf.getframerate()
 
 
 def test_full_encode_decode_cycle(tmp_path):
@@ -33,8 +40,11 @@ def test_full_encode_decode_cycle(tmp_path):
     assert (out_dir / HISTORY_DB).exists()
     midi_path = Path(path).with_suffix(".mid")
     assert midi_path.exists()
-    for suffix in ("slow25", "slow50", "slow100"):
+    for suffix in ("slow25", "slow50", "slow100", "slow1000"):
         assert Path(path).with_name(Path(path).stem + f"_{suffix}.wav").exists()
+    main_dur = _duration(Path(path))
+    slow1000 = Path(path).with_name(Path(path).stem + "_slow1000.wav")
+    assert _duration(slow1000) == pytest.approx(main_dur * 10, rel=0.01)
     mid = MidiFile(midi_path)
     notes = [msg for track in mid.tracks for msg in track if msg.type == "note_on"]
     payload = build_payload(message)
