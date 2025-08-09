@@ -7,7 +7,7 @@ GhostLink hides structured text inside audio as carefully band-placed FSK tones 
 - **Codec-safe by design:** carriers live in 1.5–5 kHz (“streaming” profile, default) or 1.8–6 kHz (“studio”).
 - **Dense by default:** 8-FSK + Hamming(7,4) + interleaving + optional repeats.
 - **Hash-based dedupe:** payload frame SHA-256 is the unique key; if a prior identical encode exists on disk, the run is skipped.
-- **SQLite history:** every encode (or skip) is tracked in `ghostlink_history.db` in the output directory.
+- **SQLite history:** every encode (or skip) is tracked in `gibberlink_history.db` in the output directory (legacy `ghostlink_history.db` files are migrated automatically).
 - **No external dependencies:** pure Python 3 standard library.
 - **Three input modes:** CLI text, single file, or directory of text files.
 
@@ -102,7 +102,7 @@ ghostlink text "msg" out/ --mix-profile studio --baud 120
 ## Output
 Each encode produces:
 - `out/<base>_<sha12>.wav` — The audio payload
-- `out/ghostlink_history.db` — SQLite history of encodes
+- `out/gibberlink_history.db` — SQLite history of encodes
 
 Filenames include the first 12 hex chars of the framed payload hash (sha256) for traceability.
 
