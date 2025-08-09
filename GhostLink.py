@@ -80,17 +80,29 @@ def sha256_hex(b: bytes) -> str:
 # ------------------------
 # Hamming(7,4) FEC
 # ------------------------
-def hamming74_encode_nibble(nibble: int) -> List[int]:
-    if nibble < 0 or nibble > 0xF:
-        raise ValueError("Nibble must be 0..15")
+def _calc_hamming74(nibble: int) -> Tuple[int, int, int, int, int, int, int]:
+    """Return Hamming(7,4) encoding for a single nibble."""
     d3 = (nibble >> 3) & 1
     d2 = (nibble >> 2) & 1
     d1 = (nibble >> 1) & 1
-    d0 = (nibble >> 0) & 1
-    p1 = (d3 ^ d2 ^ d0) & 1
-    p2 = (d3 ^ d1 ^ d0) & 1
-    p3 = (d2 ^ d1 ^ d0) & 1
-    return [p1, p2, d3, p3, d2, d1, d0]
+    d0 = nibble & 1
+    p1 = d3 ^ d2 ^ d0
+    p2 = d3 ^ d1 ^ d0
+    p3 = d2 ^ d1 ^ d0
+    return p1, p2, d3, p3, d2, d1, d0
+
+
+# Precompute all 16 possible encoded nibbles for fast lookup
+HAMMING74_ENCODE_TABLE: Tuple[Tuple[int, ...], ...] = tuple(
+    _calc_hamming74(n) for n in range(16)
+)
+
+
+def hamming74_encode_nibble(nibble: int) -> List[int]:
+    """Encode a nibble using Hamming(7,4) with a table lookup."""
+    if nibble < 0 or nibble > 0xF:
+        raise ValueError("Nibble must be 0..15")
+    return list(HAMMING74_ENCODE_TABLE[nibble])
 
 def bytes_to_bits(b: bytes) -> List[int]:
     bits = []
@@ -111,7 +123,7 @@ def hamming74_encode_bytes(b: bytes) -> List[int]:
         nibs.append(nibble)
     out = []
     for n in nibs:
-        out.extend(hamming74_encode_nibble(n))
+        out.extend(HAMMING74_ENCODE_TABLE[n])
     return out
 
 def interleave(bits: List[int], depth: int) -> List[int]:
