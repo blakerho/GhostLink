@@ -1,6 +1,8 @@
 from gibberlink import encode_bytes_to_wav
 from gibberlink.decoder import decode_wav
 from gibberlink.constants import HISTORY_DB
+from pathlib import Path
+from mido import MidiFile
 
 
 def test_full_encode_decode_cycle(tmp_path):
@@ -23,6 +25,11 @@ def test_full_encode_decode_cycle(tmp_path):
     )
     assert skipped is False
     assert (out_dir / HISTORY_DB).exists()
+    midi_path = Path(path).with_suffix(".mid")
+    assert midi_path.exists()
+    mid = MidiFile(midi_path)
+    notes = [msg for track in mid.tracks for msg in track if msg.type == "note_on"]
+    assert notes
     decoded = decode_wav(
         path=path,
         baud=200.0,

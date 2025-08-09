@@ -1,2 +1,3 @@
-# No external deps (stdlib only). Keep file for future extensions.
+# Lightweight MIDI library for .mid output
+mido
 

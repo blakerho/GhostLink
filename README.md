@@ -9,7 +9,7 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
 - **Dense by default:** 8-FSK + Hamming(7,4) + interleaving + optional repeats.
 - **Hash-based dedupe:** payload frame SHA-256 is the unique key; if a prior identical encode exists on disk, the run is skipped.
 - **SQLite history:** every encode (or skip) is tracked in `ghostlink_history.db` in the output directory (legacy `gibberlink_history.db` files are migrated automatically).
-- **No external dependencies:** pure Python 3 standard library.
+- **Lightweight dependency:** uses `mido` to emit companion MIDI files.
 - **Three input modes:** CLI text, single file, or directory of text files.
 
 ## Project Layout
@@ -99,6 +99,7 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
 ## Output
 Each encode produces:
 - `out/<base>_<sha12>.wav` — The audio payload
+- `out/<base>_<sha12>.mid` — MIDI rendering of the carrier sequence
 - `out/ghostlink_history.db` — SQLite history of encodes
 
 Filenames include the first 12 hex chars of the framed payload hash (sha256) for traceability.
