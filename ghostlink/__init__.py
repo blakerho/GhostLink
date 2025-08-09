@@ -1,7 +1,7 @@
-"""GhostLink package.
+"""Gibberlink package.
 
 This package exposes encoding and decoding helpers as well as the
-``main`` function used by the ``ghostlink`` console script.
+``main`` function used by the ``gibberlink`` console script.
 """
 
 from .__main__ import *  # noqa: F401,F403

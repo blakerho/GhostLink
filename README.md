@@ -1,7 +1,7 @@
-# GhostLink — Stealth Text-to-Audio Encoder (Dense 8-FSK)
+# Gibberlink — Stealth Text-to-Audio Encoder (Dense 8-FSK)
 
 ## Overview
-GhostLink hides structured text inside audio as carefully band-placed FSK tones designed to survive consumer playback chains and lossy streaming codecs. It defaults to **dense 8-FSK** with forward error correction, interleaving, and repeats for robustness; a 4-FSK mode is available for extra margin.
+Gibberlink hides structured text inside audio as carefully band-placed FSK tones designed to survive consumer playback chains and lossy streaming codecs. It defaults to **dense 8-FSK** with forward error correction, interleaving, and repeats for robustness; a 4-FSK mode is available for extra margin.
 
 ### Key Properties
 - **Codec-safe by design:** carriers live in 1.5–5 kHz (“streaming” profile, default) or 1.8–6 kHz (“studio”).
@@ -19,7 +19,7 @@ GhostLink hides structured text inside audio as carefully band-placed FSK tones 
 - `requirements.txt` – placeholder for future dependencies
 
 ```
-GhostLink/
+Gibberlink/
 ├── ghostlink/
 ├── tests/
 ├── pyproject.toml
@@ -36,8 +36,8 @@ GhostLink/
 
 ### Clone & Prepare
 ```bash
-git clone https://github.com/13alvone/GhostLink.git
-cd GhostLink
+git clone https://github.com/13alvone/Gibberlink.git
+cd Gibberlink
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install .
@@ -47,7 +47,7 @@ pip install .
 ## Usage
 
 ### General Form
-```ghostlink <mode> <input> <outdir> [options]```
+```gibberlink <mode> <input> <outdir> [options]```
 
 ### Modes
 - `text` — Encode a short message passed on CLI
@@ -57,24 +57,24 @@ pip install .
 ### Examples
 ```
 # 1) Quick start: CLI text -> out/
-ghostlink text "trust_no_one" out/
+gibberlink text "trust_no_one" out/
 
 # 2) Single file, dense defaults, streaming-safe band
-ghostlink file ./secret.txt out/
+gibberlink file ./secret.txt out/
 
 # 3) Directory batch; sparse 4-FSK; slightly slower baud
-ghostlink dir ./payloads out/ --sparse --baud 60
+gibberlink dir ./payloads out/ --sparse --baud 60
 
 # 4) Louder lab test run (don’t do this in a real mix)
-ghostlink text "HELLO" out/ --amp 0.2 -v
+gibberlink text "HELLO" out/ --amp 0.2 -v
 
 # 5) Studio profile (a bit brighter), higher baud
-ghostlink text "msg" out/ --mix-profile studio --baud 120
+gibberlink text "msg" out/ --mix-profile studio --baud 120
 ```
 
 ### Decoding
-# Recover text from a GhostLink WAV
-```ghostlink-decode out/msg_ce67eacbbb93.wav```
+# Recover text from a Gibberlink WAV
+```gibberlink-decode out/msg_ce67eacbbb93.wav```
 
 ---
 
@@ -110,13 +110,13 @@ Filenames include the first 12 hex chars of the framed payload hash (sha256) for
 
 ## Dedupe Logic
 - The unique key is SHA-256 over the framed payload (`magic + length + data + CRC32`).
-- If the same payload was already written **and** the target WAV file still exists, GhostLink skips re-encoding.
+- If the same payload was already written **and** the target WAV file still exists, Gibberlink skips re-encoding.
 - Skips and writes are both recorded in SQLite (writes as rows; skips are implied by the UNIQUE constraint + presence check).
 
 ---
 
 ## Recommended Mix Practices
-- Render GhostLink track at low gain (`amp 0.03–0.06`) and tuck beneath steady, broadband content (pads, room tone, cymbal wash).
+- Render Gibberlink track at low gain (`amp 0.03–0.06`) and tuck beneath steady, broadband content (pads, room tone, cymbal wash).
 - Keep the carriers unobvious: avoid boosting 1.5–5 kHz with mastering EQ; a gentle shelf down can help.
 - Avoid ultrasonics (>16 kHz); streaming codecs often remove them entirely.
 - If worried about dropout under heavy compression, increase `--repeats` or `--interleave` rather than cranking `amp`.
@@ -132,12 +132,12 @@ Filenames include the first 12 hex chars of the framed payload hash (sha256) for
 
 ## CLI Reference
 ```
-  ghostlink <mode> <input> <outdir>
+  gibberlink <mode> <input> <outdir>
       [--samplerate 48000] [--baud 90] [--amp 0.06]
       [--dense|--sparse] [--mix-profile streaming|studio]
       [--preamble 0.8] [--gap 0] [--interleave 4] [--repeats 2] [--ramp 5]
       [-v|--verbose]
-  ghostlink-decode <wavfile>
+  gibberlink-decode <wavfile>
       [--baud 90] [--dense|--sparse] [--mix-profile streaming|studio]
       [--preamble 0.8] [--interleave 4] [--repeats 2] [-v|--verbose]
 ```
@@ -150,7 +150,7 @@ Filenames include the first 12 hex chars of the framed payload hash (sha256) for
 
 ## FAQ
 **Q:** Can I guarantee zero frequency loss on every platform?  
-**A:** No one can—playback chains vary wildly. GhostLink mitigates this by:
+**A:** No one can—playback chains vary wildly. Gibberlink mitigates this by:
 1. Confining carriers to a proven codec-survivable band.
 2. Spacing carriers to reduce intermod/aliasing issues.
 3. Using interleaving + repeats so partial losses don’t kill the message.

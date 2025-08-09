@@ -1,4 +1,4 @@
-"""Shared frequency profiles for GhostLink encoder/decoder."""
+"""Shared frequency profiles for Gibberlink encoder/decoder."""
 
 from typing import List
 
