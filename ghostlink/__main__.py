@@ -320,8 +320,18 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
     framed_hash = sha256_hex(payload)
     crc_hex = f"{binascii.crc32(user_bytes) & 0xFFFFFFFF:08x}"
 
-    db_path = os.path.join(out_dir, "ghostlink_history.db")
+    db_path = os.path.join(out_dir, "gibberlink_history.db")
     ensure_dir(out_dir)
+
+    legacy_path = os.path.join(out_dir, "ghostlink_history.db")
+    if not os.path.exists(db_path) and os.path.exists(legacy_path):
+        try:
+            os.rename(legacy_path, db_path)
+            logging.info(f"[i] Migrated legacy DB: {legacy_path} -> {db_path}")
+        except Exception as e:
+            logging.warning(f"[!] Failed to migrate legacy DB: {e}")
+            db_path = legacy_path
+
     db_init(db_path)
 
     exists, prior_path = db_has_hash(db_path, framed_hash)
