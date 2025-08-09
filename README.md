@@ -84,6 +84,8 @@ ghostlink text "msg" out/ --mix-profile studio --baud 120
 - `--mix-profile {streaming|studio}`  
   - **streaming** (default): carriers in ~1.5–5 kHz for survival across MP3/AAC/OGG + cheap speakers  
   - **studio**: ~1.8–6 kHz, slightly brighter; still conservative
+- `--samplerate <int>`  
+  Output sample rate in Hz (default 48000). Range: 16000–192000. Higher rates provide more frequency resolution but larger files.
 - `--baud <float>`  
   Symbols per second (default 90). Raise for shorter files, lower for maximum safety.
 - `--interleave <int>`  
@@ -96,15 +98,25 @@ ghostlink text "msg" out/ --mix-profile studio --baud 120
   Training sequence to aid future decoder locking (default 0.8 s).
 - `--gap <ms>`, `--ramp <ms>`  
   Intersymbol gap (usually 0) and raised-cosine ramp per symbol to avoid clicks.
+- `--bit-depth {16|24|32}`  
+  Output bit depth: 16-bit PCM (default), 24-bit PCM, or 32-bit float.
+- `--channels {1|2}`  
+  Output channels: 1 (mono, default) or 2 (stereo).
 
 ---
 
 ## Output
 Each encode produces:
-- `out/<base>_<sha12>.wav` — The audio payload
+- `out/<base>_<sha12>.wav` — The audio payload (configurable format)
 - `out/ghostlink_history.db` — SQLite history of encodes
 
 Filenames include the first 12 hex chars of the framed payload hash (sha256) for traceability.
+
+### Audio Format Support
+- **Bit depths**: 16-bit PCM, 24-bit PCM, or 32-bit float
+- **Channels**: Mono or stereo output
+- **Decoder compatibility**: Automatically detects and supports all formats
+- **Default**: 16-bit mono for maximum compatibility
 
 ---
 
@@ -136,11 +148,19 @@ Filenames include the first 12 hex chars of the framed payload hash (sha256) for
       [--samplerate 48000] [--baud 90] [--amp 0.06]
       [--dense|--sparse] [--mix-profile streaming|studio]
       [--preamble 0.8] [--gap 0] [--interleave 4] [--repeats 2] [--ramp 5]
-      [-v|--verbose]
+      [--bit-depth 16|24|32] [--channels 1|2] [-v|--verbose]
   ghostlink-decode <wavfile>
       [--baud 90] [--dense|--sparse] [--mix-profile streaming|studio]
       [--preamble 0.8] [--interleave 4] [--repeats 2] [-v|--verbose]
 ```
+
+**Audio Format Notes:**
+- Output supports 16-bit PCM, 24-bit PCM, or 32-bit float
+- Mono or stereo output supported
+- Decoder automatically detects and supports all formats
+- Sample rate can be configured (16kHz-192kHz range)
+- Default: 16-bit mono for maximum compatibility
+
 **Return codes:**
 - `0`   success
 - `2`   validation or runtime error
@@ -154,6 +174,9 @@ Filenames include the first 12 hex chars of the framed payload hash (sha256) for
 1. Confining carriers to a proven codec-survivable band.
 2. Spacing carriers to reduce intermod/aliasing issues.
 3. Using interleaving + repeats so partial losses don’t kill the message.
+
+**Q:** What audio formats are supported?  
+**A:** GhostLink supports 16-bit PCM, 24-bit PCM, and 32-bit float in both mono and stereo configurations. The decoder automatically detects the format. 16-bit mono is the default for maximum compatibility across playback systems.
 
 **Q:** Will you provide a decoder?  
 **A:** Yes—next iteration can include Goertzel-based symbol detection, timing recovery, and CRC/FEC verification as a sister tool.
