@@ -210,6 +210,54 @@ def validate_args(args: argparse.Namespace) -> None:
         args.dense = True
 
 # ------------------------
+# Output sanitization
+# ------------------------
+def _strip_rtf(text: str) -> str:
+    """Best-effort removal of RTF control words and groups.
+
+    This is not a full RTF parser but suffices for basic lyric payloads
+    that may have been authored in editors like TextEdit which default to
+    RTF. Control words (e.g. ``\b`` or ``\fs40``) and grouping braces are
+    removed. Hex escapes of the form ``\'hh`` are converted to the
+    corresponding character.
+    """
+
+    import re
+
+    def hex_to_char(match: re.Match[str]) -> str:
+        try:
+            return bytes.fromhex(match.group(1)).decode("latin-1")
+        except Exception:
+            return ""
+
+    # Replace hex escapes first so that non-ASCII characters can be filtered
+    text = re.sub(r"\\'([0-9a-fA-F]{2})", hex_to_char, text)
+    # Drop remaining control words (e.g. \b, \fs40) and any numeric parameter
+    text = re.sub(r"\\[a-zA-Z]+-?\d* ?", "", text)
+    # Remove braces which delimit RTF groups
+    text = text.replace("{", "").replace("}", "")
+    # Leftover backslashes are not meaningful in plain text
+    return text.replace("\\", "")
+
+
+def ascii_only(data: bytes) -> str:
+    """Decode *data* to a printable ASCII string.
+
+    ``decode_wav`` returns the raw payload bytes.  For CLI display we want
+    to present something a human can read, ideally stripping any accidental
+    RTF markup and removing non-ASCII characters.
+    """
+
+    try:
+        text = data.decode("utf-8")
+    except Exception:
+        text = data.decode("latin-1", errors="ignore")
+    if text.lstrip().startswith("{\\rtf"):
+        text = _strip_rtf(text)
+    # Finally ensure only ASCII characters remain
+    return text.encode("ascii", "ignore").decode("ascii").strip()
+
+# ------------------------
 # Main
 # ------------------------
 def main() -> int:
@@ -226,11 +274,7 @@ def main() -> int:
             interleave_depth=args.interleave,
             repeats=args.repeats,
         )
-        try:
-            text = msg.decode("utf-8")
-        except Exception:
-            text = msg.hex()
-        print(text)
+        print(ascii_only(msg))
         return 0
     except KeyboardInterrupt:
         logging.error("[x] Interrupted by user.")
