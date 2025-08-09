@@ -1,0 +1,2 @@
+# No external deps (stdlib only). Keep file for future extensions.
+

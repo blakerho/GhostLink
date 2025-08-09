@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.build/
+dist/
+build/
+.eggs/
+*.egg-info/
+
+# Virtual env
+.venv/
+venv/
+ENV/
+env/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor junk
+.vscode/
+.idea/
+
+# Project artifacts
+out/
+*.wav
+ghostlink_history.db
+logs/
+
