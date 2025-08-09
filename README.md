@@ -22,19 +22,19 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
 - **ffmpeg** is NOT required (GhostLink writes standard PCM WAV)
 
 ### Clone & Prepare
-\tgit clone <your-repo-url>
-\tcd <repo>
-\tpython3 -m venv .venv
-\t. .venv/bin/activate     # Windows: .venv\Scripts\activate
-\tpip install -r requirements.txt
-\tchmod +x ghostlink.py
+  git clone <your-repo-url>
+  cd <repo>
+  python3 -m venv .venv
+  . .venv/bin/activate     # Windows: .venv\Scripts\activate
+  pip install -r requirements.txt
+  chmod +x ghostlink.py
 
 ---
 
 ## Usage
 
 ### General Form
-\t./ghostlink.py <mode> <input> <outdir> [options]
+  ./ghostlink.py <mode> <input> <outdir> [options]
 
 ### Modes
 - `text` — Encode a short message passed on CLI
@@ -42,24 +42,24 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
 - `dir` — Encode all files in a directory (non-recursive, processed in sorted order for determinism)
 
 ### Examples
-\t# 1) Quick start: CLI text -> out/
-\t./ghostlink.py text "trust_no_one" out/
+# 1) Quick start: CLI text -> out/
+  ./ghostlink.py text "trust_no_one" out/
 
-\t# 2) Single file, dense defaults, streaming-safe band
-\t./ghostlink.py file ./secret.txt out/
+# 2) Single file, dense defaults, streaming-safe band
+  ./ghostlink.py file ./secret.txt out/
 
-\t# 3) Directory batch; sparse 4-FSK; slightly slower baud
-\t./ghostlink.py dir ./payloads out/ --sparse --baud 60
+# 3) Directory batch; sparse 4-FSK; slightly slower baud
+  ./ghostlink.py dir ./payloads out/ --sparse --baud 60
 
-\t# 4) Louder lab test run (don’t do this in a real mix)
-\t./ghostlink.py text "HELLO" out/ --amp 0.2 -v
+# 4) Louder lab test run (don’t do this in a real mix)
+  ./ghostlink.py text "HELLO" out/ --amp 0.2 -v
 
-\t# 5) Studio profile (a bit brighter), higher baud
-\t./ghostlink.py text "msg" out/ --mix-profile studio --baud 120
+# 5) Studio profile (a bit brighter), higher baud
+  ./ghostlink.py text "msg" out/ --mix-profile studio --baud 120
 
 ### Decoding
-\t# Recover text from a GhostLink WAV
-\t./decoder.py out/msg_ce67eacbbb93.wav
+# Recover text from a GhostLink WAV
+  ./decoder.py out/msg_ce67eacbbb93.wav
 
 ---
 
@@ -116,14 +116,14 @@ Filenames include the first 12 hex chars of the framed payload hash (sha256) for
 ---
 
 ## CLI Reference
-\t./ghostlink.py <mode> <input> <outdir>
-\t    [--samplerate 48000] [--baud 90] [--amp 0.06]
-\t    [--dense|--sparse] [--mix-profile streaming|studio]
-\t    [--preamble 0.8] [--gap 0] [--interleave 4] [--repeats 2] [--ramp 5]
-\t    [-v|--verbose]
-\t./decoder.py <wavfile>
-\t    [--baud 90] [--dense|--sparse] [--mix-profile streaming|studio]
-\t    [--preamble 0.8] [--interleave 4] [--repeats 2] [-v|--verbose]
+  ./ghostlink.py <mode> <input> <outdir>
+      [--samplerate 48000] [--baud 90] [--amp 0.06]
+      [--dense|--sparse] [--mix-profile streaming|studio]
+      [--preamble 0.8] [--gap 0] [--interleave 4] [--repeats 2] [--ramp 5]
+      [-v|--verbose]
+  ./decoder.py <wavfile>
+      [--baud 90] [--dense|--sparse] [--mix-profile streaming|studio]
+      [--preamble 0.8] [--interleave 4] [--repeats 2] [-v|--verbose]
 
 **Return codes:**
 - `0`   success
