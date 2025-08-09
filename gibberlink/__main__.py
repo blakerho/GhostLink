@@ -390,6 +390,13 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
         bits = interleave(bits, interleave_depth)
     symbols = bits_to_symbols(bits, order)
 
+    midi_notes: List[int] = []
+    for _ in range(max(1, repeats)):
+        for sym in symbols:
+            freq = freqs[sym]
+            note = int(round(69 + 12 * math.log2(freq / 440.0)))
+            midi_notes.append(note)
+
     total_symbols = len(symbols) * max(1, repeats)
     est_s = total_symbols / baud + preamble_s
     logging.info(f"[i] Mode={'8-FSK' if dense else '4-FSK'} | Freqs={','.join(f'{f:.0f}' for f in freqs)}Hz "
@@ -418,6 +425,22 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
     except Exception as e:
         logging.error(f"[x] Failed to write WAV: {e}")
         raise
+
+    # Write MIDI sequence mirroring the symbol frequencies
+    try:
+        import mido
+        mid = mido.MidiFile()
+        track = mido.MidiTrack()
+        mid.tracks.append(track)
+        track.append(mido.MetaMessage("set_tempo", tempo=1_000_000))
+        dur_ticks = max(1, round(mid.ticks_per_beat / baud))
+        for note in midi_notes:
+            track.append(mido.Message("note_on", note=note, velocity=64, time=0))
+            track.append(mido.Message("note_off", note=note, velocity=64, time=dur_ticks))
+        mid_path = os.path.splitext(out_path)[0] + ".mid"
+        mid.save(mid_path)
+    except Exception as e:
+        logging.warning(f"[!] Failed to write MIDI: {e}")
 
     # Read back the written WAV for further processing
     try:

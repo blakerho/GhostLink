@@ -2,12 +2,13 @@ from gibberlink import encode_bytes_to_wav
 from gibberlink.__main__ import db_init
 from gibberlink.constants import HISTORY_DB
 import sqlite3
+from pathlib import Path
 
 
 def test_legacy_db_migrates(tmp_path):
     legacy = tmp_path / "ghostlink_history.db"
     db_init(str(legacy))
-    encode_bytes_to_wav(
+    path, _ = encode_bytes_to_wav(
         user_bytes=b"hi",
         out_dir=str(tmp_path),
         base_name_hint="msg",
@@ -22,6 +23,7 @@ def test_legacy_db_migrates(tmp_path):
         repeats=1,
         ramp_ms=5.0,
     )
+    assert Path(path).with_suffix(".mid").exists()
     new_db = tmp_path / HISTORY_DB
     assert new_db.exists()
     assert not legacy.exists()
