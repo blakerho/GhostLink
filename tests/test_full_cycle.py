@@ -1,10 +1,5 @@
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from GhostLink import encode_bytes_to_wav
-from decoder import decode_wav
+from ghostlink import encode_bytes_to_wav
+from ghostlink.decoder import decode_wav
 
 
 def test_full_encode_decode_cycle(tmp_path):

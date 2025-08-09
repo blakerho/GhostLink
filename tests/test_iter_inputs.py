@@ -1,11 +1,8 @@
-import os
-import sys
 import logging
 
 import pytest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from GhostLink import iter_inputs, read_utf8_bytes
+from ghostlink import iter_inputs, read_utf8_bytes
 
 
 def test_iter_inputs_skips_unreadable_files(tmp_path, monkeypatch, caplog):
@@ -19,7 +16,7 @@ def test_iter_inputs_skips_unreadable_files(tmp_path, monkeypatch, caplog):
             raise OSError("boom")
         return read_utf8_bytes(src, is_literal)
 
-    monkeypatch.setattr("GhostLink.read_utf8_bytes", fake_read)
+    monkeypatch.setattr("ghostlink.__main__.read_utf8_bytes", fake_read)
 
     with caplog.at_level(logging.ERROR):
         result = list(iter_inputs("dir", str(tmp_path)))
