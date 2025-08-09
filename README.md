@@ -97,7 +97,7 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
   Intersymbol gap (usually 0) and raised-cosine ramp per symbol to avoid clicks.
 - `--out-name <file.wav>`
   Override the auto-generated base name. Useful when embedding in a project;
-  slowed variants (`*_slow25.wav`, `*_slow50.wav`, `*_slow100.wav`) and the
+  slowed variants (`*_slow25.wav`, `*_slow50.wav`, `*_slow100.wav`, `*_slow1000.wav` ≈10×) and the
   companion MIDI file use the same prefix.
 
 ---
@@ -108,6 +108,7 @@ Each encode produces:
 - `out/<base>_<sha12>_slow25.wav` — 25% slower (duration ×4/3)
 - `out/<base>_<sha12>_slow50.wav` — 50% slower (duration ×2)
 - `out/<base>_<sha12>_slow100.wav` — 100% slower (duration ×4)
+- `out/<base>_<sha12>_slow1000.wav` — one-tenth speed (duration ×10)
 - `out/<base>_<sha12>.mid` — MIDI rendering of the carrier sequence
 - `out/ghostlink_history.db` — SQLite history of encodes
 

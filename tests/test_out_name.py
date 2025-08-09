@@ -1,8 +1,16 @@
 import subprocess
+import wave
 from pathlib import Path
+
+import pytest
 
 from ghostlink import encode_bytes_to_wav
 from ghostlink.constants import HISTORY_DB
+
+
+def _duration(p: Path) -> float:
+    with wave.open(str(p), "rb") as wf:
+        return wf.getnframes() / wf.getframerate()
 
 
 def test_encode_bytes_to_wav_out_name(tmp_path):
@@ -27,6 +35,10 @@ def test_encode_bytes_to_wav_out_name(tmp_path):
     assert (tmp_path / "custom_slow25.wav").exists()
     assert (tmp_path / "custom_slow50.wav").exists()
     assert (tmp_path / "custom_slow100.wav").exists()
+    assert (tmp_path / "custom_slow1000.wav").exists()
+    main_dur = _duration(tmp_path / "custom.wav")
+    slow_dur = _duration(tmp_path / "custom_slow1000.wav")
+    assert slow_dur == pytest.approx(main_dur * 10, rel=0.01)
     assert (tmp_path / "custom.mid").exists()
     assert (tmp_path / HISTORY_DB).exists()
 
@@ -51,6 +63,10 @@ def test_cli_out_name(tmp_path):
     assert "cli_slow25.wav" in slow
     assert "cli_slow50.wav" in slow
     assert "cli_slow100.wav" in slow
+    assert "cli_slow1000.wav" in slow
+    main_dur = _duration(tmp_path / "cli.wav")
+    slow_dur = _duration(tmp_path / "cli_slow1000.wav")
+    assert slow_dur == pytest.approx(main_dur * 10, rel=0.01)
     assert (tmp_path / "cli.mid").exists()
 
 
