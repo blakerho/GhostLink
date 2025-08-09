@@ -179,11 +179,12 @@ def synth_tone(freq: float, sr: int, duration_s: float, amp: float,
     return struct.pack("<" + "h" * len(out), *out), phase
 
 def symbols_to_audio(symbols: List[int], freqs: List[float], sr: int, baud: float,
-                     amp: float, gap_ms: float = 0.0, ramp_ms: float = 5.0) -> bytes:
+                     amp: float, phase0: float = 0.0,
+                     gap_ms: float = 0.0, ramp_ms: float = 5.0) -> Tuple[bytes, float]:
     sym_dur = 1.0 / float(baud)
     gap_s = max(0.0, gap_ms / 1000.0)
     buff = bytearray()
-    phase = 0.0
+    phase = phase0
     for s in symbols:
         f = freqs[s]
         tone, phase = synth_tone(f, sr, sym_dur, amp, phase, ramp_ms=ramp_ms)
@@ -191,7 +192,7 @@ def symbols_to_audio(symbols: List[int], freqs: List[float], sr: int, baud: floa
         if gap_s > 0:
             silence, phase = synth_tone(0.0, sr, gap_s, 0.0, phase, ramp_ms=0.0)
             buff.extend(silence)
-    return bytes(buff)
+    return bytes(buff), phase
 
 def write_wav(path: str, sr: int, pcm: bytes) -> None:
     with wave.open(path, "wb") as wf:
@@ -209,16 +210,16 @@ def build_payload(user_bytes: bytes) -> bytes:
     crc = struct.pack(">I", binascii.crc32(user_bytes) & 0xFFFFFFFF)
     return magic + length + user_bytes + crc
 
-def preamble(freqs: List[float], sr: int, amp: float, seconds: float) -> bytes:
+def preamble(freqs: List[float], sr: int, amp: float, seconds: float) -> Tuple[bytes, float]:
     if seconds <= 0:
-        return b""
+        return b"", 0.0
     per = max(0.05, seconds / len(freqs))
     out = bytearray()
     phase = 0.0
     for f in freqs:
         t, phase = synth_tone(f, sr, per, amp, phase)
         out.extend(t)
-    return bytes(out)
+    return bytes(out), phase
 
 # ------------------------
 # Frequency profiles (codec-safe by design)
@@ -359,10 +360,14 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
 
     # Synthesize
     pcm = bytearray()
+    phase = 0.0
     if preamble_s > 0.0:
-        pcm.extend(preamble(freqs, samplerate, amp, preamble_s))
+        pre_pcm, phase = preamble(freqs, samplerate, amp, preamble_s)
+        pcm.extend(pre_pcm)
     for _ in range(max(1, repeats)):
-        pcm.extend(symbols_to_audio(symbols, freqs, samplerate, baud, amp, gap_ms=gap_ms, ramp_ms=ramp_ms))
+        tones, phase = symbols_to_audio(symbols, freqs, samplerate, baud, amp, phase,
+                                       gap_ms=gap_ms, ramp_ms=ramp_ms)
+        pcm.extend(tones)
 
     # Filename includes short hash for reproducibility
     safe_hint = "".join(c for c in base_name_hint if c.isalnum() or c in ("-", "_"))[:40] or "msg"
