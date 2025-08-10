@@ -8,6 +8,7 @@ That's it! The app will:
 - Start the web server automatically
 - Open your browser to http://localhost:5001
 - Show notifications when ready
+- Handle server conflicts automatically
 
 ---
 
@@ -18,6 +19,15 @@ python3 launch.py
 ```
 
 Then open http://localhost:5001 in your browser.
+
+---
+
+## **New Features**
+
+- ✅ **Persistent Settings**: Directory selections are automatically saved
+- ✅ **Custom Filenames**: Override auto-generated names for text and file modes
+- ✅ **Enhanced UI**: Larger text input, better visual feedback
+- ✅ **Robust Launcher**: Better error handling and debugging
 
 ---
 
