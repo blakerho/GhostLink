@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Mind Open Audio Encoder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            min-height: 100vh;
+            padding: 20px;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #1a1a1a;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            border: 1px solid #333333;
+        }
+
+        .header {
+            background: #0f0f0f;
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            border-bottom: 1px solid #333333;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            font-weight: 700;
+            color: #ff69b4;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 40px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #0f0f0f;
+            border: 1px solid #333333;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 18px 24px;
+            background: #0f0f0f;
+            color: #888888;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border-right: 1px solid #333333;
+        }
+
+        .tab-button:last-child {
+            border-right: none;
+        }
+
+        .tab-button.active {
+            background: #ff69b4;
+            color: white;
+            font-weight: 700;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-section {
+            background: #0f0f0f;
+            padding: 32px;
+            border-radius: 12px;
+            margin-bottom: 32px;
+            border: 1px solid #333333;
+        }
+
+        .form-section h3 {
+            color: #ffffff;
+            margin-bottom: 24px;
+            font-size: 1.4em;
+            font-weight: 700;
+            border-bottom: 2px solid #444444;
+            padding-bottom: 12px;
+        }
+        
+        /* All section headings in grey, except command preview stays blue */
+        .section-input,
+        .section-audio,
+        .section-error,
+        .section-decode,
+        .section-decoder,
+        .section-batch,
+        .section-install {
+            color: #cccccc !important;
+        }
+        
+        .install-status {
+            background: #0f0f0f;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: #1a1a1a;
+            border-radius: 6px;
+        }
+        
+        .status-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .status-item span:last-child {
+            margin-left: 12px;
+            color: #e0e0e0;
+        }
+        
+        .install-options {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .install-options .btn {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 16px;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+        
+        .form-group select {
+            background: #1a1a1a;
+            color: #ffffff;
+            cursor: pointer;
+        }
+        
+        .form-group select option {
+            background: #1a1a1a;
+            color: #ffffff;
+            padding: 8px;
+        }
+        
+        /* Additional dropdown styling for better cross-browser compatibility */
+        .form-group select::-ms-expand {
+            display: none;
+        }
+        
+        .form-group select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364b5f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #64b5f6;
+            background: #1f1f1f;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #1e1e1e;
+            color: #ffffff;
+            border-radius: 8px;
+            border: 2px solid #404040;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .checkbox-item:hover {
+            border-color: #ff69b4;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(255, 105, 180, 0.2);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-display {
+            padding: 16px;
+            border: 2px dashed #64b5f6;
+            border-radius: 8px;
+            background: #1a1a1a;
+            color: #ffffff;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 15px;
+        }
+
+        .file-input-display:hover {
+            background: #0f0f0f;
+            border-color: #81c784;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: #ff69b4;
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background: #ff1493;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-1px);
+        }
+
+        .output-section {
+            background: #0f0f0f;
+            border: 1px solid #444444;
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 32px;
+        }
+
+        .output-section h3 {
+            color: #64b5f6;
+            margin-bottom: 15px;
+        }
+
+        .command-preview {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            white-space: pre;
+            margin-bottom: 15px;
+        }
+
+        .help-text {
+            font-size: 14px;
+            color: #9e9e9e;
+            margin-top: 8px;
+        }
+        
+        /* Pastel accent colors for different elements */
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #e0e0e0;
+        }
+        
+        /* All form labels now use soft grey for better eye comfort */
+        .form-group label[for*="fsk"],
+        .form-group label[for*="mix"],
+        .form-group label[for*="sample"],
+        .form-group label[for*="baud"],
+        .form-group label[for*="amplitude"],
+        .form-group label[for*="preamble"],
+        .form-group label[for*="interleave"],
+        .form-group label[for*="repeats"],
+        .form-group label[for*="ghostlink-path"] {
+            color: #e0e0e0;
+        }
+
+        .advanced-options {
+            border-top: 2px solid #dee2e6;
+            margin-top: 20px;
+            padding-top: 20px;
+        }
+
+        .toggle-advanced {
+            background: none;
+            border: none;
+            color: #64b5f6;
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        .toggle-advanced:hover {
+            text-decoration: underline;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-ready { background: #64b5f6; }
+        .status-working { background: #ffb74d; }
+        .status-error { background: #e57373; }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #64b5f6;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👻 GhostFace</h1>
+            <p>Mind Open Audio</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Shared GhostLink Directory Configuration -->
+            <div class="form-section">
+                <h3 class="section-input">GhostLink Configuration</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>GhostLink Directory Path</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="ghostlink-path" class="file-input" webkitdirectory directory>
+                            <div class="file-input-display">
+                                <span id="ghostlink-path-text">📁 Select GhostLink Directory</span>
+                            </div>
+                        </div>
+                        <div class="help-text">Select your GhostLink installation directory (shared across all operations)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-button" onclick="switchTab('install')">Install</button>
+                <button class="tab-button active" onclick="switchTab('encode')">Encode</button>
+                <button class="tab-button" onclick="switchTab('decode')">Decode</button>
+                <button class="tab-button" onclick="switchTab('batch')">Batch Process</button>
+            </div>
+
+            <!-- Encode Tab -->
+            <div id="encode-tab" class="tab-content active">
+                <form id="encode-form">
+                    <div class="form-section">
+                        <h3 class="section-input">Input Configuration</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Output Directory</label>
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="output-dir" class="file-input" webkitdirectory directory>
+                                    <div class="file-input-display">
+                                        <span id="output-dir-text">📁 Select Output Directory</span>
+                                    </div>
+                                </div>
+                                <div class="help-text">Select directory where encoded files will be saved</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Encoding Mode</label>
+                                <select id="encode-mode" onchange="toggleInputMethod()">
+                                    <option value="text">Text Input (CLI)</option>
+                                    <option value="file">Single File</option>
+                                    <option value="dir">Directory of Files</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="custom-filename-group">
+                                <label>Custom Output Name (Optional)</label>
+                                <input type="text" id="custom-filename" placeholder="e.g., customFilename.wav">
+                                <div class="help-text">Override auto-generated filename</div>
+                            </div>
+                        </div>
+
+                        <div id="text-input-group" class="form-group">
+                            <label>Text to Encode</label>
+                            <textarea id="text-input" placeholder="Text to be encoded..."></textarea>
+                        </div>
+
+                        <div id="file-input-group" class="form-group" style="display: none;">
+                            <label>File to Encode</label>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="file-input" class="file-input" accept=".txt,.md,.json">
+                                <div class="file-input-display">
+                                    <span id="file-input-text">Click to select file or drag & drop</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="dir-input-group" class="form-group" style="display: none;">
+                            <label>Directory Path</label>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="dir-input" class="file-input" webkitdirectory directory>
+                                <div class="file-input-display">
+                                    <span id="dir-input-text">📁 Select Directory with Text Files</span>
+                                </div>
+                            </div>
+                            <div class="help-text">Select directory containing text files to process</div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-audio">Audio Configuration</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>FSK Mode</label>
+                                <select id="fsk-mode">
+                                    <option value="dense">Dense (8-FSK) - Default</option>
+                                    <option value="sparse">Sparse (4-FSK) - More robust</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Mix Profile</label>
+                                <select id="mix-profile">
+                                    <option value="streaming">Streaming (1.5-5 kHz) - Default</option>
+                                    <option value="studio">Studio (1.8-6 kHz) - Brighter</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Sample Rate (Hz)</label>
+                                <select id="sample-rate">
+                                    <option value="44100">44100</option>
+                                    <option value="48000" selected>48000</option>
+                                    <option value="96000">96000</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Baud Rate (symbols/sec)</label>
+                                <input type="number" id="baud-rate" value="90" min="30" max="200" step="5">
+                                <div class="help-text">Higher = shorter files, lower = more robust</div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Amplitude (0.0 - 1.0)</label>
+                                <input type="number" id="amplitude" value="0.06" min="0.01" max="1.0" step="0.01">
+                                <div class="help-text">Keep low (0.03-0.08) for stealth in mixes</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Preamble Duration (seconds)</label>
+                                <input type="number" id="preamble" value="0.8" min="0.1" max="3.0" step="0.1">
+                                <div class="help-text">Training sequence for decoder synchronization</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-error">Error Correction & Robustness</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Interleaving Depth</label>
+                                <input type="number" id="interleave" value="4" min="1" max="16">
+                                <div class="help-text">Time interleaving to combat burst errors</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Repeats</label>
+                                <input type="number" id="repeats" value="2" min="1" max="10">
+                                <div class="help-text">Number of times to repeat payload</div>
+                            </div>
+                        </div>
+                        
+                        <div class="advanced-options" id="advanced-encode">
+                            <button type="button" class="toggle-advanced" onclick="toggleAdvanced('advanced-encode-options')">
+                                ⚙️ Advanced Options
+                            </button>
+                            <div id="advanced-encode-options" style="display: none;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Gap (ms)</label>
+                                        <input type="number" id="gap" value="0" min="0" max="50">
+                                        <div class="help-text">Intersymbol gap duration</div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Ramp (ms)</label>
+                                        <input type="number" id="ramp" value="5" min="0" max="20">
+                                        <div class="help-text">Raised-cosine ramp to avoid clicks</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="output-section">
+                        <h3>Command Preview</h3>
+                        <div id="command-preview" class="command-preview">ghostlink text "your_message" out/</div>
+                        <div class="help-text">This command will be executed when you click "Encode"</div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-primary" onclick="executeEncode()">
+                            <span class="status-indicator status-ready"></span>
+                            Encode Message
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset Form</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Decode Tab -->
+            <div id="decode-tab" class="tab-content">
+                <form id="decode-form">
+                    <div class="form-section">
+                        <h3 class="section-decode">Decode Configuration</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Audio File to Decode</label>
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="decode-file-input" class="file-input" accept=".wav,.mp3,.flac">
+                                    <div class="file-input-display">
+                                        <span id="decode-file-text">🎵 Select WAV/MP3/FLAC file to decode</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-decoder">Decoder Settings</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Expected FSK Mode</label>
+                                <select id="decode-fsk-mode">
+                                    <option value="dense">Dense (8-FSK)</option>
+                                    <option value="sparse">Sparse (4-FSK)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Expected Mix Profile</label>
+                                <select id="decode-mix-profile">
+                                    <option value="streaming">Streaming Profile</option>
+                                    <option value="studio">Studio Profile</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Expected Baud Rate</label>
+                                <input type="number" id="decode-baud-rate" value="90" min="30" max="200" step="5">
+                            </div>
+                            <div class="form-group">
+                                <label>Expected Preamble Duration</label>
+                                <input type="number" id="decode-preamble" value="0.8" min="0.1" max="3.0" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="output-section">
+                        <h3>Decode Command Preview</h3>
+                        <div id="decode-command-preview" class="command-preview">ghostlink-decode input.wav</div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-primary" onclick="executeDecode()">
+                            <span class="status-indicator status-ready"></span>
+                            Decode Message
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Install Tab -->
+            <div id="install-tab" class="tab-content">
+                <div class="form-section">
+                    <h3 class="section-install">Installation & Setup</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Installation Status</label>
+                            <div id="install-status" class="install-status">
+                                <div class="status-item">
+                                    <span class="status-indicator" id="ghostlink-status">⏳</span>
+                                    <span>GhostLink Package</span>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-indicator" id="flask-status">⏳</span>
+                                    <span>Web Dependencies</span>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-indicator" id="modules-status">⏳</span>
+                                    <span>Module Availability</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Installation Options</label>
+                            <div class="install-options">
+                                <button type="button" class="btn btn-secondary" onclick="installDependencies()">
+                                    Install Web Dependencies
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="installGhostLink()">
+                                    Install GhostLink
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="installAll()">
+                                    Install Everything
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="output-section">
+                        <h3>Installation Log</h3>
+                        <div id="install-log" class="command-preview">Ready to install components...</div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-primary" onclick="checkInstallation()">
+                            Check Status
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Batch Tab -->
+            <div id="batch-tab" class="tab-content">
+                <div class="form-section">
+                    <h3 class="section-batch">Batch Processing</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Processing Mode</label>
+                            <select id="batch-mode">
+                                <option value="encode-multiple">Encode Multiple Files</option>
+                                <option value="decode-multiple">Decode Multiple Files</option>
+                                <option value="convert-formats">Convert Between Formats</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Input Directory</label>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="batch-input-dir" class="file-input" webkitdirectory directory>
+                                <div class="file-input-display">
+                                    <span id="batch-input-dir-text">📁 Select Input Directory</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Output Directory</label>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="batch-output-dir" class="file-input" webkitdirectory directory>
+                                <div class="file-input-display">
+                                    <span id="batch-output-dir-text">📁 Select Output Directory</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>File Pattern (Optional)</label>
+                            <input type="text" id="file-pattern" placeholder="*.txt or *.wav">
+                            <div class="help-text">Filter files by pattern (e.g., *.txt, secret_*)</div>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="batch-progress"></div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-primary" onclick="executeBatch()">
+                            Process Batch
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+// Tab switching functionality
+function switchTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab and mark button as active
+    document.getElementById(tabName + '-tab').classList.add('active');
+    event.target.classList.add('active');
+}
+
+// Input method toggle
+function toggleInputMethod() {
+    const mode = document.getElementById('encode-mode').value;
+    const textGroup = document.getElementById('text-input-group');
+    const fileGroup = document.getElementById('file-input-group');
+    const dirGroup = document.getElementById('dir-input-group');
+
+    textGroup.style.display = mode === 'text' ? 'block' : 'none';
+    fileGroup.style.display = mode === 'file' ? 'block' : 'none';
+    dirGroup.style.display = mode === 'dir' ? 'block' : 'none';
+    
+    updateCommandPreview();
+}
+
+// Advanced options toggle
+function toggleAdvanced(id) {
+    const element = document.getElementById(id);
+    const isHidden = element.style.display === 'none';
+    element.style.display = isHidden ? 'block' : 'none';
+    
+    // Update button text
+    const button = element.previousElementSibling;
+    if (button && button.classList.contains('toggle-advanced')) {
+        button.textContent = isHidden ? '⚙️ Hide Advanced Options' : '⚙️ Advanced Options';
+    }
+}
+
+// Update command preview
+function updateCommandPreview() {
+    const mode = document.getElementById('encode-mode').value;
+    
+    // Get output directory from file input
+    const outputDirFiles = document.getElementById('output-dir').files;
+    const outputDir = outputDirFiles && outputDirFiles.length > 0 ? 
+        outputDirFiles[0].webkitRelativePath.split('/')[0] : 'out/';
+    
+    const fskMode = document.getElementById('fsk-mode').value;
+    const mixProfile = document.getElementById('mix-profile').value;
+    const baudRate = document.getElementById('baud-rate').value;
+    const amplitude = document.getElementById('amplitude').value;
+    const preamble = document.getElementById('preamble').value;
+    const interleave = document.getElementById('interleave').value;
+    const repeats = document.getElementById('repeats').value;
+    const customFilename = document.getElementById('custom-filename').value;
+    const sampleRate = document.getElementById('sample-rate').value;
+
+    let input = '';
+    if (mode === 'text') {
+        const textInput = document.getElementById('text-input').value || 'your_message';
+        input = `"${textInput}"`;
+    } else if (mode === 'file') {
+        input = './input_file.txt';
+    } else if (mode === 'dir') {
+        const dirFiles = document.getElementById('dir-input').files;
+        const dirInput = dirFiles && dirFiles.length > 0 ? 
+            dirFiles[0].webkitRelativePath.split('/')[0] : './input_directory';
+        input = dirInput;
+    }
+
+    let command = `ghostlink ${mode} ${input} ${outputDir}`;
+    
+    // Add options
+    if (fskMode === 'sparse') command += ' --sparse';
+    if (mixProfile !== 'streaming') command += ` --mix-profile ${mixProfile}`;
+    if (sampleRate !== '48000') command += ` --samplerate ${sampleRate}`;
+    if (baudRate !== '90') command += ` --baud ${baudRate}`;
+    if (amplitude !== '0.06') command += ` --amp ${amplitude}`;
+    if (preamble !== '0.8') command += ` --preamble ${preamble}`;
+    if (interleave !== '4') command += ` --interleave ${interleave}`;
+    if (repeats !== '2') command += ` --repeats ${repeats}`;
+    if (customFilename) command += ` --out-name ${customFilename}`;
+    
+    command += ' -v';
+
+    document.getElementById('command-preview').textContent = command;
+}
+
+// Update decode command preview
+function updateDecodeCommandPreview() {
+    const fskMode = document.getElementById('decode-fsk-mode').value;
+    const mixProfile = document.getElementById('decode-mix-profile').value;
+    const baudRate = document.getElementById('decode-baud-rate').value;
+    const preamble = document.getElementById('decode-preamble').value;
+
+    let command = 'ghostlink-decode input.wav';
+    
+    if (fskMode === 'sparse') command += ' --sparse';
+    if (mixProfile !== 'streaming') command += ` --mix-profile ${mixProfile}`;
+    if (baudRate !== '90') command += ` --baud ${baudRate}`;
+    if (preamble !== '0.8') command += ` --preamble ${preamble}`;
+    command += ' -v';
+
+    document.getElementById('decode-command-preview').textContent = command;
+}
+
+// UPDATE THE executeEncode FUNCTION TO CALL THE API
+async function executeEncode() {
+    // Get GhostLink directory path
+    const ghostlinkPathFiles = document.getElementById('ghostlink-path').files;
+    if (!ghostlinkPathFiles || ghostlinkPathFiles.length === 0) {
+        alert('Please select your GhostLink directory');
+        return;
+    }
+    const ghostlinkPath = ghostlinkPathFiles[0].webkitRelativePath.split('/')[0];
+
+    // Get output directory path
+    const outputDirFiles = document.getElementById('output-dir').files;
+    if (!outputDirFiles || outputDirFiles.length === 0) {
+        alert('Please select an output directory');
+        return;
+    }
+    const outputDir = outputDirFiles[0].webkitRelativePath.split('/')[0];
+
+    const mode = document.getElementById('encode-mode').value;
+    
+    // Prepare request data
+    const requestData = {
+        mode: mode,
+        ghostlink_dir: ghostlinkPath,
+        output_dir: outputDir,
+        samplerate: parseInt(document.getElementById('sample-rate').value),
+        baud: parseFloat(document.getElementById('baud-rate').value),
+        amp: parseFloat(document.getElementById('amplitude').value),
+        fsk_mode: document.getElementById('fsk-mode').value,
+        mix_profile: document.getElementById('mix-profile').value,
+        gap: parseFloat(document.getElementById('gap').value || '0'),
+        preamble: parseFloat(document.getElementById('preamble').value),
+        interleave: parseInt(document.getElementById('interleave').value),
+        repeats: parseInt(document.getElementById('repeats').value),
+        ramp: parseFloat(document.getElementById('ramp').value || '5'),
+        custom_filename: document.getElementById('custom-filename').value || null
+    };
+
+    if (mode === 'text') {
+        const text = document.getElementById('text-input').value;
+        if (!text.trim()) {
+            alert('Please enter text to encode');
+            return;
+        }
+        requestData.text = text;
+    } else if (mode === 'file') {
+        const file = document.getElementById('file-input').files[0];
+        if (!file) {
+            alert('Please select a file to encode');
+            return;
+        }
+        requestData.file_path = file.path || file.name;
+    } else if (mode === 'dir') {
+        const dirFiles = document.getElementById('dir-input').files;
+        if (!dirFiles || dirFiles.length === 0) {
+            alert('Please select a directory containing text files');
+            return;
+        }
+        requestData.input_dir = dirFiles[0].webkitRelativePath.split('/')[0];
+    }
+
+    // Show loading state
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<span class="status-indicator status-working"></span>Encoding...';
+    button.disabled = true;
+
+    try {
+        const response = await fetch('/api/encode', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            if (mode === 'dir') {
+                alert(`Successfully encoded ${result.files.length} files!\nOutput directory: ${outputDir}`);
+            } else {
+                alert(`Successfully encoded!\nOutput file: ${result.file}`);
+            }
+        } else {
+            alert(`Encoding failed: ${result.error}`);
+        }
+    } catch (error) {
+        alert(`Error: ${error.message}`);
+    } finally {
+        // Restore button state
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+// UPDATE THE executeDecode FUNCTION TO CALL THE API
+async function executeDecode() {
+    const ghostlinkPathFiles = document.getElementById('ghostlink-path').files;
+    if (!ghostlinkPathFiles || ghostlinkPathFiles.length === 0) {
+        alert('Please select your GhostLink directory');
+        return;
+    }
+    const ghostlinkPath = ghostlinkPathFiles[0].webkitRelativePath.split('/')[0];
+    
+    const file = document.getElementById('decode-file-input').files[0];
+    if (!file) {
+        alert('Please select an audio file to decode');
+        return;
+    }
+
+    // For web browsers, we need to handle file uploads differently
+    // We'll use FormData to upload the file to the server
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('ghostlink_dir', ghostlinkPath);
+    formData.append('baud', document.getElementById('decode-baud-rate').value);
+    formData.append('fsk_mode', document.getElementById('decode-fsk-mode').value);
+    formData.append('mix_profile', document.getElementById('decode-mix-profile').value);
+    formData.append('preamble', document.getElementById('decode-preamble').value);
+    formData.append('interleave', '4');
+    formData.append('repeats', '2');
+    formData.append('verbose', 'true');
+
+    // Show loading state
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<span class="status-indicator status-working"></span>Decoding...';
+    button.disabled = true;
+
+    try {
+        const response = await fetch('/api/decode', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`Decoded message:\n\n${result.decoded_text}`);
+        } else {
+            alert(`Decoding failed: ${result.error}`);
+        }
+    } catch (error) {
+        alert(`Error: ${error.message}`);
+    } finally {
+        // Restore button state
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+// INSTALLATION FUNCTIONS
+async function checkInstallation() {
+    const logElement = document.getElementById('install-log');
+    logElement.textContent = 'Checking installation status...';
+    
+    try {
+        const response = await fetch('/api/install/check');
+        const result = await response.json();
+        
+        // Update status indicators
+        updateStatusIndicator('ghostlink-status', result.ghostlink_installed);
+        updateStatusIndicator('flask-status', result.flask_installed);
+        updateStatusIndicator('modules-status', result.modules_available);
+        
+        // Update log
+        let logText = 'Installation Status:\n';
+        logText += `• GhostLink Package: ${result.ghostlink_installed ? '✅ Installed' : '❌ Not installed'}\n`;
+        logText += `• Web Dependencies: ${result.flask_installed ? '✅ Installed' : '❌ Not installed'}\n`;
+        logText += `• Module Availability: ${result.modules_available ? '✅ Available' : '❌ Not available'}\n`;
+        logText += `\nGhostLink Path: ${result.ghostlink_path}`;
+        
+        logElement.textContent = logText;
+        
+    } catch (error) {
+        logElement.textContent = `Error checking installation: ${error.message}`;
+    }
+}
+
+function updateStatusIndicator(elementId, isInstalled) {
+    const element = document.getElementById(elementId);
+    if (isInstalled) {
+        element.textContent = '✅';
+        element.style.color = '#4caf50';
+    } else {
+        element.textContent = '❌';
+        element.style.color = '#f44336';
+    }
+}
+
+async function installDependencies() {
+    const logElement = document.getElementById('install-log');
+    logElement.textContent = 'Installing web dependencies...';
+    
+    try {
+        const response = await fetch('/api/install/dependencies', {
+            method: 'POST'
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            logElement.textContent = '✅ Web dependencies installed successfully!\n\n' + result.message;
+            // Refresh status
+            setTimeout(checkInstallation, 1000);
+        } else {
+            logElement.textContent = '❌ Failed to install dependencies:\n\n' + result.error;
+        }
+    } catch (error) {
+        logElement.textContent = `Error installing dependencies: ${error.message}`;
+    }
+}
+
+async function installGhostLink() {
+    const logElement = document.getElementById('install-log');
+    logElement.textContent = 'Installing GhostLink package...';
+    
+    try {
+        const response = await fetch('/api/install/ghostlink', {
+            method: 'POST'
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            logElement.textContent = '✅ GhostLink installed successfully!\n\n' + result.message;
+            // Refresh status
+            setTimeout(checkInstallation, 1000);
+        } else {
+            logElement.textContent = '❌ Failed to install GhostLink:\n\n' + result.error;
+        }
+    } catch (error) {
+        logElement.textContent = `Error installing GhostLink: ${error.message}`;
+    }
+}
+
+async function installAll() {
+    const logElement = document.getElementById('install-log');
+    logElement.textContent = 'Installing all components...\n\nThis may take a few minutes...';
+    
+    try {
+        const response = await fetch('/api/install/all', {
+            method: 'POST'
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            logElement.textContent = '✅ All components installed successfully!\n\n' + result.message;
+            // Refresh status
+            setTimeout(checkInstallation, 1000);
+        } else {
+            logElement.textContent = '❌ Failed to install components:\n\n' + result.error;
+        }
+    } catch (error) {
+        logElement.textContent = `Error installing components: ${error.message}`;
+    }
+}
+
+// UPDATE THE executeBatch FUNCTION TO CALL THE API
+async function executeBatch() {
+    const batchMode = document.getElementById('batch-mode').value;
+    
+    const ghostlinkPathFiles = document.getElementById('ghostlink-path').files;
+    if (!ghostlinkPathFiles || ghostlinkPathFiles.length === 0) {
+        alert('Please select your GhostLink directory');
+        return;
+    }
+    const ghostlinkPath = ghostlinkPathFiles[0].webkitRelativePath.split('/')[0];
+    
+    const inputDirFiles = document.getElementById('batch-input-dir').files;
+    if (!inputDirFiles || inputDirFiles.length === 0) {
+        alert('Please select an input directory');
+        return;
+    }
+    const inputDir = inputDirFiles[0].webkitRelativePath.split('/')[0];
+    
+    const outputDirFiles = document.getElementById('batch-output-dir').files;
+    if (!outputDirFiles || outputDirFiles.length === 0) {
+        alert('Please select an output directory');
+        return;
+    }
+    const outputDir = outputDirFiles[0].webkitRelativePath.split('/')[0];
+
+    // Prepare request data
+    const requestData = {
+        mode: batchMode,
+        ghostlink_dir: ghostlinkPath,
+        input_dir: inputDir,
+        output_dir: outputDir
+    };
+
+    // Show loading state
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<span class="status-indicator status-working"></span>Processing...';
+    button.disabled = true;
+
+    // Show progress bar
+    const progressBar = document.getElementById('batch-progress');
+    progressBar.style.width = '10%';
+
+    try {
+        const response = await fetch('/api/batch', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            progressBar.style.width = '100%';
+            if (batchMode === 'encode-multiple') {
+                alert(`Batch encoding completed!\nProcessed ${result.files.length} files\nOutput saved to: ${outputDir}`);
+            } else {
+                alert(`Batch ${batchMode} completed!\nOutput saved to: ${outputDir}`);
+            }
+        } else {
+            alert(`Batch processing failed: ${result.error}`);
+        }
+    } catch (error) {
+        alert(`Error: ${error.message}`);
+    } finally {
+        // Restore button state
+        button.innerHTML = originalText;
+        button.disabled = false;
+        progressBar.style.width = '0%';
+    }
+}
+
+function resetForm() {
+    document.getElementById('encode-form').reset();
+    document.getElementById('text-input').value = '';
+    document.getElementById('file-input-text').textContent = 'Click to select file or drag & drop';
+    updateCommandPreview();
+}
+
+// File input handlers - REPLACE THE EXISTING setupFileInputHandlers FUNCTION
+function setupFileInputHandlers() {
+    // Handle GhostLink directory selection
+    document.getElementById('ghostlink-path').addEventListener('change', function(e) {
+        const dirName = e.target.files[0] ? e.target.files[0].webkitRelativePath.split('/')[0] : '📁 Select GhostLink Directory';
+        document.getElementById('ghostlink-path-text').textContent = dirName;
+    });
+
+    // Handle output directory selection
+    document.getElementById('output-dir').addEventListener('change', function(e) {
+        const dirName = e.target.files[0] ? e.target.files[0].webkitRelativePath.split('/')[0] : '📁 Select Output Directory';
+        document.getElementById('output-dir-text').textContent = dirName;
+    });
+
+    // Handle directory input for batch processing
+    document.getElementById('dir-input').addEventListener('change', function(e) {
+        const dirName = e.target.files[0] ? e.target.files[0].webkitRelativePath.split('/')[0] : '📁 Select Directory with Text Files';
+        document.getElementById('dir-input-text').textContent = dirName;
+    });
+
+
+
+    // Handle batch input directory
+    document.getElementById('batch-input-dir').addEventListener('change', function(e) {
+        const dirName = e.target.files[0] ? e.target.files[0].webkitRelativePath.split('/')[0] : '📁 Select Input Directory';
+        document.getElementById('batch-input-dir-text').textContent = dirName;
+    });
+
+    // Handle batch output directory
+    document.getElementById('batch-output-dir').addEventListener('change', function(e) {
+        const dirName = e.target.files[0] ? e.target.files[0].webkitRelativePath.split('/')[0] : '📁 Select Output Directory';
+        document.getElementById('batch-output-dir-text').textContent = dirName;
+    });
+
+    // Handle regular file inputs (unchanged)
+    document.getElementById('file-input').addEventListener('change', function(e) {
+        const fileName = e.target.files[0] ? e.target.files[0].name : 'Click to select file or drag & drop';
+        document.getElementById('file-input-text').textContent = fileName;
+    });
+
+    document.getElementById('decode-file-input').addEventListener('change', function(e) {
+        const fileName = e.target.files[0] ? e.target.files[0].name : '🎵 Select WAV/MP3/FLAC file to decode';
+        document.getElementById('decode-file-text').textContent = fileName;
+        updateDecodeCommandPreview();
+    });
+}
+
+// UPDATE THE setupDragAndDrop FUNCTION TO HANDLE DIRECTORIES
+function setupDragAndDrop(inputId, textId) {
+    const dropZone = document.querySelector(`#${inputId}`).parentNode;
+    
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.style.borderColor = '#64b5f6';
+        dropZone.style.backgroundColor = '#0f0f0f';
+    });
+
+    dropZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        dropZone.style.borderColor = '#64b5f6';
+        dropZone.style.backgroundColor = '#1a1a1a';
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.style.borderColor = '#64b5f6';
+        dropZone.style.backgroundColor = '#1a1a1a';
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            document.getElementById(inputId).files = files;
+            
+            // Handle directory vs file display
+            if (inputId.includes('ghostlink-path') || inputId.includes('output-dir') || inputId.includes('dir-input') || inputId.includes('batch-')) {
+                const dirName = files[0].webkitRelativePath ? files[0].webkitRelativePath.split('/')[0] : files[0].name;
+                document.getElementById(textId).textContent = dirName;
+            } else {
+                document.getElementById(textId).textContent = files[0].name;
+            }
+            
+            if (inputId.includes('decode')) {
+                updateDecodeCommandPreview();
+            }
+        }
+    });
+}
+
+// Copy command to clipboard
+function copyCommandToClipboard(commandId) {
+    const command = document.getElementById(commandId).textContent;
+    navigator.clipboard.writeText(command).then(() => {
+        showStatus('Command copied to clipboard!', 'success');
+    }).catch(() => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = command;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showStatus('Command copied to clipboard!', 'success');
+    });
+}
+
+// Show status messages
+function showStatus(message, type = 'info') {
+    const statusDiv = document.createElement('div');
+    statusDiv.className = `status-message status-${type}`;
+    statusDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        max-width: 300px;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    const colors = {
+        'success': '#28a745',
+        'error': '#dc3545',
+        'warning': '#ffc107',
+        'info': '#007bff'
+    };
+    statusDiv.style.backgroundColor = colors[type];
+    statusDiv.textContent = message;
+    
+    document.body.appendChild(statusDiv);
+    
+    setTimeout(() => {
+        statusDiv.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            if (document.body.contains(statusDiv)) {
+                document.body.removeChild(statusDiv);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Tooltips
+function addTooltip(elementId, text) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.title = text;
+    }
+}
+
+// Form validation
+function validateForm(tabId) {
+    const requiredFields = {
+        'encode-tab': ['ghostlink-path', 'output-dir'],
+        'decode-tab': ['ghostlink-path'],
+        'batch-tab': ['ghostlink-path', 'batch-input-dir', 'batch-output-dir']
+    };
+
+    const fields = requiredFields[tabId] || [];
+    let isValid = true;
+
+    fields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field && !field.value.trim()) {
+            field.style.borderColor = '#dc3545';
+            isValid = false;
+        } else if (field) {
+            field.style.borderColor = '#dee2e6';
+        }
+    });
+
+    return isValid;
+}
+
+// UPDATE THE setupDragAndDrop CALLS IN DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Setup file input handlers
+    setupFileInputHandlers();
+    
+    // Setup drag and drop for all inputs
+    setupDragAndDrop('ghostlink-path', 'ghostlink-path-text');
+    setupDragAndDrop('output-dir', 'output-dir-text');
+    setupDragAndDrop('dir-input', 'dir-input-text');
+    setupDragAndDrop('batch-input-dir', 'batch-input-dir-text');
+    setupDragAndDrop('batch-output-dir', 'batch-output-dir-text');
+    setupDragAndDrop('file-input', 'file-input-text');
+    setupDragAndDrop('decode-file-input', 'decode-file-text');
+    
+    // Add event listeners for real-time updates
+    const encodeInputs = [
+        'encode-mode', 'text-input', 'output-dir', 'fsk-mode', 'mix-profile',
+        'sample-rate', 'baud-rate', 'amplitude', 'preamble', 'interleave', 
+        'repeats', 'custom-filename', 'dir-input'
+    ];
+
+    encodeInputs.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', updateCommandPreview);
+            element.addEventListener('change', updateCommandPreview);
+        }
+    });
+
+    const decodeInputs = [
+        'decode-fsk-mode', 'decode-mix-profile', 'decode-baud-rate', 'decode-preamble'
+    ];
+
+    decodeInputs.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', updateDecodeCommandPreview);
+            element.addEventListener('change', updateDecodeCommandPreview);
+        }
+    });
+
+    // Initialize command previews
+    updateCommandPreview();
+    updateDecodeCommandPreview();
+    
+    // Setup command preview click to copy
+    const commandPreviews = document.querySelectorAll('.command-preview');
+    commandPreviews.forEach(preview => {
+        preview.style.cursor = 'pointer';
+        preview.title = 'Click to copy command';
+        preview.addEventListener('click', () => {
+            copyCommandToClipboard(preview.id);
+        });
+    });
+    
+    // Initialize tooltips
+    addTooltip('interleave', 'Higher values help combat burst errors but increase complexity');
+    addTooltip('repeats', 'More repeats increase reliability but make files longer');
+    addTooltip('amplitude', 'Lower values are more stealthy but harder to decode');
+    addTooltip('baud-rate', 'Balance between file length and robustness');
+    
+    // Check installation status on page load
+    setTimeout(checkInstallation, 1000);
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl+Enter to execute current tab action
+    if (e.ctrlKey && e.key === 'Enter') {
+        const activeTab = document.querySelector('.tab-content.active').id;
+        if (activeTab === 'encode-tab') {
+            executeEncode();
+        } else if (activeTab === 'decode-tab') {
+            executeDecode();
+        } else if (activeTab === 'batch-tab') {
+            executeBatch();
+        }
+    }
+    
+    // Ctrl+R to reset form
+    if (e.ctrlKey && e.key === 'r') {
+        e.preventDefault();
+        resetForm();
+    }
+});
+
+// Add CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    .status-message {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+`;
+document.head.appendChild(style);
+    </script>
+</body>
+</html>

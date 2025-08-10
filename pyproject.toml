@@ -15,3 +15,6 @@ dependencies = ["mido"]
 [project.scripts]
 ghostlink = "ghostlink.__main__:main"
 ghostlink-decode = "ghostlink.decoder:main"
+
+[tool.setuptools.packages.find]
+exclude = ["ghostFace*", "tests*", "build*", "*.egg-info*"]

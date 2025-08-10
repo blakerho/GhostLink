@@ -554,8 +554,8 @@ def iter_inputs(mode: str, input_arg: str) -> Iterable[Tuple[str, bytes]]:
             except Exception as e:
                 logging.error(f"[x] Skipping '{fp}': {e}")
 
-def main() -> int:
-    args = parse_args()
+def main_with_args(args) -> int:
+    """Main function that accepts pre-parsed arguments (for API use)"""
     setup_logging(args.verbose)
     validate_args(args)
 
@@ -593,6 +593,10 @@ def main() -> int:
 
     logging.info(f"[i] Done. Created={made} Skipped={skipped}")
     return 0
+
+def main() -> int:
+    args = parse_args()
+    return main_with_args(args)
 
 if __name__ == "__main__":
     sys.exit(main())

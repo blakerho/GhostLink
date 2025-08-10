@@ -260,9 +260,9 @@ def ascii_only(data: bytes) -> str:
 # ------------------------
 # Main
 # ------------------------
-def main() -> int:
+def main_with_args(args) -> int:
+    """Main function that accepts pre-parsed arguments (for API use)"""
     try:
-        args = parse_args()
         setup_logging(args.verbose)
         validate_args(args)
         msg = decode_wav(
@@ -282,6 +282,10 @@ def main() -> int:
     except Exception as e:
         logging.error(f"[x] Decode failed: {e}")
         return 2
+
+def main() -> int:
+    args = parse_args()
+    return main_with_args(args)
 
 if __name__ == "__main__":
     sys.exit(main())
