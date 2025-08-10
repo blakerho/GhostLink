@@ -402,9 +402,8 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
                         samplerate: int, baud: float, amp: float,
                         dense: bool, mix_profile: str,
                         gap_ms: float, preamble_s: float, interleave_depth: int,
-                        repeats: int, ramp_ms: float,
+                        repeats: int, ramp_ms: float, bit_depth: int = 16, channels: int = 1,
                         out_name: Optional[str] = None) -> Tuple[str, bool]:
-                        repeats: int, ramp_ms: float, bit_depth: int = 16, channels: int = 1) -> Tuple[str, bool]:
     """
     Returns (output_path, skipped_by_dedupe)
     """
@@ -643,7 +642,7 @@ def main_with_args(args) -> int:
                 interleave_depth=args.interleave,
                 repeats=args.repeats,
                 ramp_ms=args.ramp,
-                out_name=args.out_name
+                out_name=args.out_name,
                 bit_depth=args.bit_depth,
                 channels=args.channels
             )

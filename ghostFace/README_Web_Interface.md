@@ -2,26 +2,22 @@
 
 A modern, one-click web interface for GhostLink audio encoding and decoding.
 
-## 🚀 **Quick Start (3 Options)**
+## 🚀 **Quick Start (2 Options)**
 
-### **Option 1: One-Click App (Recommended)**
+### **Option 1: One-Click App (Recommended - macOS)**
 1. **Double-click `GhostFace.app`** in this folder
-2. **Wait for the notification** ("Starting GhostFace web server...")
+2. **Wait for the notification** ("Starting GhostFace...")
 3. **Your browser opens automatically** to http://localhost:5001
 4. **Install components** from the web interface if needed
 5. **Start encoding and decoding!**
 
-### **Option 2: Terminal Command**
+### **Option 2: Manual Launch (All Platforms)**
 ```bash
 python3 launch.py
 ```
 Then open http://localhost:5001 in your browser.
 
-### **Option 3: Manual Start**
-```bash
-python3 start_ghostlink_web.py
-```
-Then open http://localhost:5001 in your browser.
+**Note**: The robust launcher automatically handles server conflicts and provides better error handling.
 
 ## ⚠️ **Important Notes**
 
@@ -40,6 +36,10 @@ Then open http://localhost:5001 in your browser.
 - ✅ **Batch processing** for multiple files
 - ✅ **Drag & drop support** for easy file selection
 - ✅ **Cross-platform** (macOS, Linux, Windows)
+- ✅ **Persistent settings** - directory selections are automatically saved
+- ✅ **Custom filenames** - override auto-generated names for text and file modes
+- ✅ **Enhanced error handling** - robust launcher with better debugging
+- ✅ **Multi-format audio support** - 16/24/32-bit, mono/stereo channels
 
 ## 📱 **Making It Even Easier**
 

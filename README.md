@@ -20,34 +20,98 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
 - `pyproject.toml` – packaging and script entry points
 - `requirements.txt` – placeholder for future dependencies
 
-	GhostLink/
-	├── ghostlink/          # Core CLI tools
-	├── ghostFace/          # 🎯 Web interface & one-click app
-	├── tests/              # Unit tests
-	├── pyproject.toml      # Package configuration
-	└── requirements.txt    # Dependencies
+```
+GhostLink/
+├── ghostlink/          # Core CLI tools
+│   ├── __main__.py     # Encoder CLI
+│   ├── decoder.py      # Decoder CLI
+│   └── profiles.py     # Audio profiles
+├── ghostFace/          # 🎯 Web interface & one-click app
+│   ├── GhostFace.app   # macOS one-click launcher
+│   ├── GhostWeb.html   # Modern web interface
+│   ├── ghostlink_api.py # Flask API backend
+│   ├── launch.py       # Server launcher
+│   └── robust_launcher.sh # Enhanced launcher script
+├── tests/              # Unit tests
+├── pyproject.toml      # Package configuration
+└── requirements.txt    # Dependencies
+```
 
 ---
 
 ## 🚀 **Quick Start with GhostFace (Recommended)**
 
-For the easiest experience, use our modern web interface:
+For the easiest experience, use our modern web interface with one-click app:
 
+### **Option 1: One-Click App (macOS)**
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/13alvone/GhostLink.git
+   git clone https://github.com/blakerho/GhostLink.git
    cd GhostLink/ghostFace
    ```
 
-2. **Double-click `GhostFace.app`** (macOS)
-   - Or run `python3 launch.py` (all platforms)
-   - Your browser opens automatically to http://localhost:5001
+2. **Double-click `GhostFace.app`**
+   - Automatically starts the web server
+   - Opens your browser to http://localhost:5001
+   - Shows notifications when ready
 
 3. **Install components** if needed (one-click from the web interface)
 
 4. **Start encoding and decoding!**
 
+### **Option 2: Manual Launch (All Platforms)**
+1. **Clone and navigate**
+   ```bash
+   git clone https://github.com/13alvone/GhostLink.git
+   cd GhostLink/ghostFace
+   ```
+
+2. **Run the launcher**
+   ```bash
+   python3 launch.py
+   ```
+
+3. **Open your browser** to http://localhost:5001
+
+### **Features:**
+- ✅ **Persistent Settings**: Directory selections are automatically saved
+- ✅ **Custom Filenames**: Override auto-generated names for text and file modes
+- ✅ **Modern UI**: Clean, responsive interface with real-time feedback
+- ✅ **One-Click Installation**: Install dependencies directly from the UI
+- ✅ **Multi-Format Support**: 16/24/32-bit audio, mono/stereo channels
+- ✅ **Visual Feedback**: Progress indicators and success messages
+
 See `ghostFace/README_Web_Interface.md` for detailed instructions.
+
+---
+
+## 🌐 **Web Interface Features**
+
+The GhostFace web interface provides a modern, user-friendly way to use GhostLink:
+
+### **Core Features**
+- **Three Input Modes**: Text, single file, or directory batch processing
+- **Real-time Preview**: See the exact command that will be executed
+- **Persistent Settings**: Directory selections are automatically saved between sessions
+- **Custom Filenames**: Override auto-generated names for text and file modes
+- **Visual Feedback**: Progress indicators and success messages
+
+### **Audio Configuration**
+- **FSK Modes**: Dense (8-FSK) or Sparse (4-FSK) for different robustness needs
+- **Mix Profiles**: Streaming (1.5-5 kHz) or Studio (1.8-6 kHz) frequency bands
+- **Bit Depth**: 16-bit, 24-bit, or 32-bit audio output
+- **Channels**: Mono or stereo output
+- **Sample Rates**: 44.1kHz, 48kHz, or 96kHz
+
+### **Error Correction & Robustness**
+- **Interleaving**: Time interleaving to combat burst errors
+- **Repeats**: Multiple payload repetitions for better recovery
+- **Advanced Options**: Preamble duration, amplitude control, gap settings
+
+### **Installation & Setup**
+- **One-Click Installation**: Install Python dependencies directly from the UI
+- **Automatic Detection**: Checks for required components and guides installation
+- **Cross-Platform**: Works on macOS, Linux, and Windows
 
 ---
 
@@ -218,6 +282,12 @@ Any decoder that implements the GibberLink specification can recover the embedde
 
 **Q:** Will you provide a decoder?  
 **A:** Yes—GhostLink includes a decoder CLI (`ghostlink-decode`) implementing Goertzel-based symbol detection, timing recovery, and CRC/FEC verification.
+
+**Q:** Is there a web interface available?  
+**A:** Yes! GhostFace provides a modern web interface with a one-click app for macOS. It includes persistent settings, custom filenames, real-time preview, and one-click installation. See the Quick Start section above.
+
+**Q:** Can I use custom filenames?  
+**A:** Yes! Both the CLI (`--out-name`) and web interface support custom filenames for text and file modes. The web interface automatically saves your directory selections for convenience.
 
 ---
 
