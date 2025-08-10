@@ -1,50 +1,75 @@
 # GhostFace - GhostLink Web Interface
 
-A modern web interface for the GhostLink audio encoder/decoder that makes it easy to encode text into audio files and decode them back. **Now with built-in installation!**
+A modern, one-click web interface for GhostLink audio encoding and decoding.
 
-## Features
+## 🚀 **Quick Start (3 Options)**
 
-- **One-Click Installation**: Install GhostLink and dependencies directly from the web interface
-- **Modern Dark Theme**: Clean, eye-friendly interface with soft colors
+### **Option 1: One-Click App (Recommended)**
+1. **Double-click `GhostFace.app`** in this folder
+2. **Wait for the notification** ("Starting GhostFace web server...")
+3. **Your browser opens automatically** to http://localhost:5001
+4. **Install components** from the web interface if needed
+5. **Start encoding and decoding!**
+
+### **Option 2: Terminal Command**
+```bash
+python3 launch.py
+```
+Then open http://localhost:5001 in your browser.
+
+### **Option 3: Manual Start**
+```bash
+python3 start_ghostlink_web.py
+```
+Then open http://localhost:5001 in your browser.
+
+## ⚠️ **Important Notes**
+
+- **Don't open `GhostWeb.html` directly** - it won't work!
+- **Always start the server first** using one of the methods above
+- **The app automatically opens your browser** when ready
+- **Keep the app/terminal running** while using GhostFace
+
+## 🎯 **What GhostFace Does**
+
+- ✅ **One-click launch** with automatic browser opening
+- ✅ **Built-in installation** of GhostLink and dependencies
+- ✅ **Modern web interface** with dark theme and soft colors
+- ✅ **Real-time encoding/decoding** of text to audio and back
+- ✅ **Multiple input modes** (text, file, directory)
+- ✅ **Batch processing** for multiple files
+- ✅ **Drag & drop support** for easy file selection
+- ✅ **Cross-platform** (macOS, Linux, Windows)
+
+## 📱 **Making It Even Easier**
+
+### **Add to Dock (macOS)**
+1. Drag `GhostFace.app` to your Dock
+2. Now you have one-click access from anywhere!
+
+### **Add to Applications (macOS)**
+1. Drag `GhostFace.app` to your Applications folder
+2. Launch from Spotlight or Applications menu
+
+## 🛠️ **Installation**
+
+If you need to install GhostLink and dependencies:
+
+1. **Start GhostFace** using any method above
+2. **Click the "Install" tab** in the web interface
+3. **Click "Check Status"** to see what needs to be installed
+4. **Click "Install Everything"** to install all components
+5. **Wait for installation to complete**
+
+## 🎨 **Features**
+
+- **Modern Dark Theme**: Clean, eye-friendly interface
 - **Real-time Command Preview**: See exactly what GhostLink commands will be executed
 - **Multiple Input Modes**: Text, file, or directory encoding
 - **Batch Processing**: Process multiple files at once
-- **Live API Integration**: Actually executes GhostLink commands, not just a mockup
+- **Live API Integration**: Actually executes GhostLink commands
 - **Drag & Drop Support**: Easy file and directory selection
 - **Responsive Design**: Works on desktop and mobile devices
-
-## Quick Start
-
-### Option 1: Automatic Installation (Recommended)
-
-1. **Clone the Repository**
-   ```bash
-   git clone <repository-url>
-   cd GhostLink/ghostFace
-   ```
-
-2. **Start the Web Interface**
-   ```bash
-   # Option A: Use the launcher (recommended)
-   python3 launch.py
-   
-   # Option B: Direct start
-   python3 start_ghostlink_web.py
-   ```
-
-3. **Open in Browser**
-   Open your browser and go to: **http://localhost:5001**
-
-4. **Install Components**
-   - Click the "Install" tab
-   - Click "Check Status" to see what needs to be installed
-   - Click "Install Everything" to install all required components
-   - Wait for installation to complete
-
-5. **Start Using**
-   - Go to the "Encode" tab
-   - Select the **parent GhostLink directory** (the folder containing the 'ghostlink' folder)
-   - Start encoding and decoding!
 
 ### Option 2: Manual Installation
 

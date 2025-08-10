@@ -3,8 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Mind Open Audio Encoder</title>
+    <title>GhostFace - GhostLink Web Interface</title>
+    <!-- 
+    ⚠️ IMPORTANT: This file must be served by the Python web server!
+    Do not open this file directly in your browser.
+    Run: python3 launch.py
+    Then open: http://localhost:5001
+    -->
     <style>
+        :root {
+            --primary-color: #ff69b4;
+            --secondary-color: #8a2be2;
+            --accent-color: #00d4ff;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --error-color: #f44336;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #888888;
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2a2a2a;
+            --border-color: #333333;
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            --primary-color: #ff69b4;
+            --secondary-color: #8a2be2;
+            --accent-color: #00d4ff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #333333;
+            --text-muted: #666666;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #e9ecef;
+            --border-color: #dee2e6;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(0, 0, 0, 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,84 +55,173 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0f0f0f;
+            background: var(--bg-primary);
             min-height: 100vh;
             padding: 20px;
-            color: #ffffff;
+            color: var(--text-primary);
+            transition: var(--transition);
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(255, 105, 180, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(138, 43, 226, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(0, 212, 255, 0.05) 0%, transparent 50%);
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: #1a1a1a;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            box-shadow: 
+                0 20px 40px var(--shadow-color),
+                0 0 0 1px var(--glass-border);
             overflow: hidden;
-            border: 1px solid #333333;
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
         }
 
         .header {
-            background: #0f0f0f;
-            color: white;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            color: var(--text-primary);
             padding: 40px 30px;
             text-align: center;
-            border-bottom: 1px solid #333333;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
         }
 
-        .header h1 {
-            font-size: 3em;
-            margin-bottom: 15px;
-            font-weight: 700;
-            color: #ff69b4;
+        /* Removed distracting shimmer animation */
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(255, 105, 180, 0.3);
+            transition: var(--transition);
+        }
+
+        .logo:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 12px 40px rgba(255, 105, 180, 0.4);
+        }
+
+        .header-text h1 {
+            font-size: 3.5em;
+            margin-bottom: 10px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             letter-spacing: -0.02em;
+            text-shadow: 0 4px 8px rgba(255, 105, 180, 0.3);
         }
 
-        .header p {
-            font-size: 1.1em;
+        .header-text p {
+            font-size: 1.2em;
             opacity: 0.9;
+            color: var(--text-secondary);
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 50px;
+            padding: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            z-index: 10;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 16px var(--shadow-color);
+            border-color: var(--primary-color);
+        }
+
+        .theme-toggle svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--text-primary);
+            fill: none;
         }
 
         .main-content {
             padding: 40px;
-            background: #1a1a1a;
-            color: #ffffff;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: var(--transition);
         }
 
         .tabs {
             display: flex;
             margin-bottom: 40px;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            background: #0f0f0f;
-            border: 1px solid #333333;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 16px var(--shadow-color);
+            position: relative;
+        }
+
+        .tabs::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
         }
 
         .tab-button {
             flex: 1;
-            padding: 18px 24px;
-            background: #0f0f0f;
-            color: #888888;
+            padding: 20px 24px;
+            background: transparent;
+            color: var(--text-muted);
             border: none;
             cursor: pointer;
             font-size: 16px;
             font-weight: 600;
-            transition: all 0.2s ease;
-            border-right: 1px solid #333333;
+            transition: var(--transition);
+            border-right: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
         }
+
+        /* Removed shimmer animation to prevent refresh issues */
 
         .tab-button:last-child {
             border-right: none;
         }
 
         .tab-button.active {
-            background: #ff69b4;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             font-weight: 700;
+            box-shadow: 0 4px 16px rgba(255, 105, 180, 0.3);
+        }
+
+        .tab-button:hover:not(.active) {
+            background: var(--glass-bg);
+            color: var(--text-primary);
         }
 
         .tab-content {
             display: none;
-            animation: fadeIn 0.3s ease;
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .tab-content.active {
@@ -98,8 +229,107 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { 
+                opacity: 0; 
+                transform: translateY(30px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+
+        .section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px var(--shadow-color);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 2px;
+        }
+
+        .section-toggle {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .section-toggle:hover {
+            transform: scale(1.1);
+            background: var(--primary-color);
+        }
+
+        .section-toggle svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--text-primary);
+            transition: var(--transition);
+        }
+
+        .section-toggle.collapsed svg {
+            transform: rotate(-90deg);
+        }
+
+        .section-content {
+            transition: var(--transition);
+            overflow: hidden;
+        }
+
+        .section-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0;
+            padding-bottom: 0;
         }
 
         .form-section {
@@ -176,35 +406,40 @@
         .form-group {
             display: flex;
             flex-direction: column;
+            margin-bottom: 24px;
+            position: relative;
         }
 
         .form-group label {
-            font-weight: 500;
+            font-weight: 600;
             margin-bottom: 8px;
-            color: #ffffff;
+            color: var(--text-secondary);
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .form-group input,
         .form-group select,
         .form-group textarea {
-            padding: 16px;
-            border: 1px solid #333333;
-            border-radius: 8px;
+            padding: 16px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
             font-size: 15px;
-            transition: all 0.2s ease;
-            background: #1a1a1a;
-            color: #ffffff;
+            transition: var(--transition);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
         
         .form-group select {
-            background: #1a1a1a;
-            color: #ffffff;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             cursor: pointer;
         }
         
         .form-group select option {
-            background: #1a1a1a;
-            color: #ffffff;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
             padding: 8px;
         }
         
@@ -217,7 +452,7 @@
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364b5f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff69b4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
             background-position: right 12px center;
             background-size: 16px;
@@ -228,8 +463,19 @@
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #64b5f6;
-            background: #1f1f1f;
+            border-color: var(--primary-color);
+            background: var(--bg-tertiary);
+            box-shadow: 
+                0 0 0 4px rgba(255, 105, 180, 0.1),
+                0 8px 32px rgba(255, 105, 180, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .form-group input:hover,
+        .form-group select:hover,
+        .form-group textarea:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-1px);
         }
 
         .form-group textarea {
@@ -248,16 +494,16 @@
             display: flex;
             align-items: center;
             padding: 12px;
-            background: #1e1e1e;
-            color: #ffffff;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             border-radius: 8px;
-            border: 2px solid #404040;
-            transition: all 0.3s ease;
+            border: 2px solid var(--border-color);
+            transition: var(--transition);
             cursor: pointer;
         }
 
         .checkbox-item:hover {
-            border-color: #ff69b4;
+            border-color: var(--primary-color);
             transform: translateY(-1px);
             box-shadow: 0 2px 8px rgba(255, 105, 180, 0.2);
         }
@@ -282,20 +528,35 @@
         }
 
         .file-input-display {
-            padding: 16px;
-            border: 2px dashed #64b5f6;
-            border-radius: 8px;
-            background: #1a1a1a;
-            color: #ffffff;
+            padding: 16px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: var(--transition);
             font-size: 15px;
         }
 
         .file-input-display:hover {
-            background: #0f0f0f;
-            border-color: #81c784;
+            border-color: #ff69b4;
+            background: rgba(255, 105, 180, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 0 0 4px rgba(255, 105, 180, 0.4);
+        }
+
+        .file-input-display.dragover {
+            border-color: #ff69b4;
+            background: rgba(255, 105, 180, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 0 0 6px rgba(255, 105, 180, 0.5);
+        }
+
+        .file-input-display.active {
+            border-color: #ff69b4;
+            background: rgba(255, 105, 180, 0.15);
+            box-shadow: 0 0 0 4px rgba(255, 105, 180, 0.4);
         }
 
         .action-buttons {
@@ -306,66 +567,94 @@
         }
 
         .btn {
-            padding: 15px 30px;
+            padding: 16px 32px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px;
-            font-weight: 500;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: var(--transition);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(255, 105, 180, 0.2);
         }
 
+        /* Removed shimmer animation to prevent refresh issues */
+
         .btn-primary {
-            background: #ff69b4;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             border: none;
-            font-weight: 600;
+            font-weight: 700;
         }
 
         .btn-primary:hover {
-            background: #ff1493;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 32px rgba(255, 105, 180, 0.4);
         }
 
         .btn-secondary {
-            background: #6c757d;
+            background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
             color: white;
         }
 
         .btn-secondary:hover {
-            background: #545b62;
-            transform: translateY(-1px);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.4);
         }
 
         .output-section {
-            background: #0f0f0f;
-            border: 1px solid #444444;
-            border-radius: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
             padding: 24px;
             margin-top: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .output-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-color), var(--secondary-color));
         }
 
         .output-section h3 {
-            color: #64b5f6;
+            color: var(--accent-color);
             margin-bottom: 15px;
+            font-weight: 700;
         }
 
         .command-preview {
-            background: #2d3748;
-            color: #e2e8f0;
-            padding: 15px;
-            border-radius: 8px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            padding: 20px;
+            border-radius: 12px;
             font-family: 'Courier New', monospace;
             font-size: 14px;
             overflow-x: auto;
             white-space: pre;
             margin-bottom: 15px;
+            border: 2px solid var(--border-color);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .command-preview:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 212, 255, 0.2);
         }
 
         .help-text {
             font-size: 14px;
-            color: #9e9e9e;
+            color: var(--text-muted);
             margin-top: 8px;
         }
         
@@ -467,8 +756,29 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>👻 GhostFace</h1>
-            <p>Mind Open Audio</p>
+            <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Light/Dark Mode">
+                <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/>
+                    <line x1="12" y1="21" x2="12" y2="23"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                    <line x1="1" y1="12" x2="3" y2="12"/>
+                    <line x1="21" y1="12" x2="23" y2="12"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+                <svg class="moon-icon" style="display: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+            </div>
+            <div class="header-content">
+                <img src="GhostFaceLogo.png" alt="GhostFace Logo" class="logo">
+                <div class="header-text">
+                    <h1>GhostFace</h1>
+                    <p>A Mind Open Audio GhostLink Web Interface</p>
+                </div>
+            </div>
         </div>
 
         <div class="main-content">
@@ -621,11 +931,16 @@
                             </div>
                         </div>
                         
-                        <div class="advanced-options" id="advanced-encode">
-                            <button type="button" class="toggle-advanced" onclick="toggleAdvanced('advanced-encode-options')">
-                                ⚙️ Advanced Options
-                            </button>
-                            <div id="advanced-encode-options" style="display: none;">
+                        <div class="section">
+                            <div class="section-header">
+                                <div class="section-title">⚙️ Advanced Options</div>
+                                <div class="section-toggle">
+                                    <svg viewBox="0 0 24 24">
+                                        <polyline points="6,9 12,15 18,9"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="section-content">
                                 <div class="form-row">
                                     <div class="form-group">
                                         <label>Gap (ms)</label>
@@ -1330,24 +1645,38 @@ function setupFileInputHandlers() {
 
 // UPDATE THE setupDragAndDrop FUNCTION TO HANDLE DIRECTORIES
 function setupDragAndDrop(inputId, textId) {
-    const dropZone = document.querySelector(`#${inputId}`).parentNode;
+    const input = document.querySelector(`#${inputId}`);
+    const dropZone = input.parentNode; // This is the file-input-wrapper
+    const display = dropZone.querySelector('.file-input-display');
+    
+    console.log(`Setting up drag and drop for ${inputId}:`, { input, dropZone, display }); // Debug log
     
     dropZone.addEventListener('dragover', function(e) {
         e.preventDefault();
-        dropZone.style.borderColor = '#64b5f6';
-        dropZone.style.backgroundColor = '#0f0f0f';
+        console.log('Dragover event triggered'); // Debug log
+        if (display) {
+            display.classList.add('dragover');
+            console.log('Added dragover class'); // Debug log
+        }
     });
 
     dropZone.addEventListener('dragleave', function(e) {
         e.preventDefault();
-        dropZone.style.borderColor = '#64b5f6';
-        dropZone.style.backgroundColor = '#1a1a1a';
+        console.log('Dragleave event triggered'); // Debug log
+        if (display) {
+            display.classList.remove('dragover');
+            console.log('Removed dragover class'); // Debug log
+        }
     });
 
     dropZone.addEventListener('drop', function(e) {
         e.preventDefault();
-        dropZone.style.borderColor = '#64b5f6';
-        dropZone.style.backgroundColor = '#1a1a1a';
+        console.log('Drop event triggered'); // Debug log
+        if (display) {
+            display.classList.remove('dragover');
+            display.classList.add('active');
+            console.log('Added active class'); // Debug log
+        }
         
         const files = e.dataTransfer.files;
         if (files.length > 0) {
@@ -1469,6 +1798,21 @@ document.addEventListener('DOMContentLoaded', function() {
     setupDragAndDrop('file-input', 'file-input-text');
     setupDragAndDrop('decode-file-input', 'decode-file-text');
     
+    // Add active state to file inputs when files are selected
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const display = this.parentElement.querySelector('.file-input-display');
+            if (display) {
+                if (this.files && this.files.length > 0) {
+                    display.classList.add('active');
+                } else {
+                    display.classList.remove('active');
+                }
+            }
+        });
+    });
+    
     // Add event listeners for real-time updates
     const encodeInputs = [
         'encode-mode', 'text-input', 'output-dir', 'fsk-mode', 'mix-profile',
@@ -1518,7 +1862,84 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check installation status on page load
     setTimeout(checkInstallation, 1000);
+    
+    // Initialize theme
+    initializeTheme();
+    
+    // Setup collapsible sections
+    setupCollapsibleSections();
 });
+
+// Theme toggle functionality
+function toggleTheme() {
+    const body = document.body;
+    const sunIcon = document.querySelector('.sun-icon');
+    const moonIcon = document.querySelector('.moon-icon');
+    
+    console.log('Theme toggle clicked!'); // Debug log
+    
+    // Force immediate theme change without animations
+    body.style.transition = 'none';
+    
+    if (body.getAttribute('data-theme') === 'light') {
+        body.removeAttribute('data-theme');
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+        localStorage.setItem('theme', 'dark');
+        console.log('Switched to dark mode');
+    } else {
+        body.setAttribute('data-theme', 'light');
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+        localStorage.setItem('theme', 'light');
+        console.log('Switched to light mode');
+    }
+    
+    // Re-enable transitions after a short delay
+    setTimeout(() => {
+        body.style.transition = '';
+    }, 50);
+}
+
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const sunIcon = document.querySelector('.sun-icon');
+    const moonIcon = document.querySelector('.moon-icon');
+    
+    if (savedTheme === 'light') {
+        document.body.setAttribute('data-theme', 'light');
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+    } else {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+    }
+}
+
+// Collapsible sections functionality
+function setupCollapsibleSections() {
+    const sections = document.querySelectorAll('.section');
+    
+    sections.forEach(section => {
+        const header = section.querySelector('.section-header');
+        const content = section.querySelector('.section-content');
+        const toggle = section.querySelector('.section-toggle');
+        
+        if (header && content && toggle) {
+            header.addEventListener('click', () => {
+                const isCollapsed = content.classList.contains('collapsed');
+                
+                if (isCollapsed) {
+                    content.classList.remove('collapsed');
+                    toggle.classList.remove('collapsed');
+                } else {
+                    content.classList.add('collapsed');
+                    toggle.classList.add('collapsed');
+                }
+            });
+        }
+    });
+}
 
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {

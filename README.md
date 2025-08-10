@@ -15,19 +15,43 @@ It defaults to **dense 8-FSK** with forward error correction, interleaving, and 
 ## Project Layout
 
 - `ghostlink/` – core package providing the `ghostlink` and `ghostlink-decode` CLIs (`__main__.py`, `decoder.py`, `profiles.py`)
+- `ghostFace/` – **modern web interface** with one-click app for easy encoding/decoding
 - `tests/` – unit tests validating encoding/decoding
 - `pyproject.toml` – packaging and script entry points
 - `requirements.txt` – placeholder for future dependencies
 
 	GhostLink/
-	├── ghostlink/
-	├── tests/
-	├── pyproject.toml
-	└── requirements.txt
+	├── ghostlink/          # Core CLI tools
+	├── ghostFace/          # 🎯 Web interface & one-click app
+	├── tests/              # Unit tests
+	├── pyproject.toml      # Package configuration
+	└── requirements.txt    # Dependencies
 
 ---
 
-## Install
+## 🚀 **Quick Start with GhostFace (Recommended)**
+
+For the easiest experience, use our modern web interface:
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/13alvone/GhostLink.git
+   cd GhostLink/ghostFace
+   ```
+
+2. **Double-click `GhostFace.app`** (macOS)
+   - Or run `python3 launch.py` (all platforms)
+   - Your browser opens automatically to http://localhost:5001
+
+3. **Install components** if needed (one-click from the web interface)
+
+4. **Start encoding and decoding!**
+
+See `ghostFace/README_Web_Interface.md` for detailed instructions.
+
+---
+
+## Install (Command Line)
 
 ### Prerequisites
 - Python 3.8+ (recommended 3.10+)

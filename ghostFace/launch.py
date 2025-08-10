@@ -21,6 +21,11 @@ def main():
     print(f"📁 Working directory: {script_dir}")
     print("🚀 Starting GhostFace web interface...")
     print("")
+    print("📋 Next steps:")
+    print("1. Wait for the server to start")
+    print("2. Open your browser and go to: http://localhost:5001")
+    print("3. DO NOT open GhostWeb.html directly!")
+    print("")
     
     try:
         # Check if Python is available
