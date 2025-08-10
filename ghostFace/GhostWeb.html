@@ -31,21 +31,7 @@
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        [data-theme="light"] {
-            --primary-color: #ff69b4;
-            --secondary-color: #8a2be2;
-            --accent-color: #00d4ff;
-            --text-primary: #1a1a1a;
-            --text-secondary: #333333;
-            --text-muted: #666666;
-            --bg-primary: #ffffff;
-            --bg-secondary: #f8f9fa;
-            --bg-tertiary: #e9ecef;
-            --border-color: #dee2e6;
-            --shadow-color: rgba(0, 0, 0, 0.1);
-            --glass-bg: rgba(255, 255, 255, 0.8);
-            --glass-border: rgba(0, 0, 0, 0.1);
-        }
+
 
         * {
             margin: 0;
@@ -132,31 +118,7 @@
             color: var(--text-secondary);
         }
 
-        .theme-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 50px;
-            padding: 12px;
-            cursor: pointer;
-            transition: var(--transition);
-            z-index: 10;
-        }
 
-        .theme-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 16px var(--shadow-color);
-            border-color: var(--primary-color);
-        }
-
-        .theme-toggle svg {
-            width: 24px;
-            height: 24px;
-            stroke: var(--text-primary);
-            fill: none;
-        }
 
         .main-content {
             padding: 40px;
@@ -541,22 +503,54 @@
 
         .file-input-display:hover {
             border-color: #ff69b4;
-            background: rgba(255, 105, 180, 0.1);
-            transform: translateY(-2px);
-            box-shadow: 0 0 0 4px rgba(255, 105, 180, 0.4);
+            background: rgba(255, 105, 180, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.4);
+            color: #ff69b4;
         }
 
         .file-input-display.dragover {
             border-color: #ff69b4;
-            background: rgba(255, 105, 180, 0.2);
+            background: rgba(255, 105, 180, 0.3);
             transform: scale(1.05);
-            box-shadow: 0 0 0 6px rgba(255, 105, 180, 0.5);
+            box-shadow: 0 12px 30px rgba(255, 105, 180, 0.5);
+            color: white;
         }
 
         .file-input-display.active {
-            border-color: #ff69b4;
-            background: rgba(255, 105, 180, 0.15);
-            box-shadow: 0 0 0 4px rgba(255, 105, 180, 0.4);
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.15);
+            box-shadow: 0 6px 18px rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+        }
+
+        /* Add a pulsing animation for better feedback */
+        .file-input-display:hover::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border: 2px solid #ff69b4;
+            border-radius: 14px;
+            animation: pulse 1.5s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .action-buttons {
@@ -756,22 +750,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Light/Dark Mode">
-                <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="5"/>
-                    <line x1="12" y1="1" x2="12" y2="3"/>
-                    <line x1="12" y1="21" x2="12" y2="23"/>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                    <line x1="1" y1="12" x2="3" y2="12"/>
-                    <line x1="21" y1="12" x2="23" y2="12"/>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                </svg>
-                <svg class="moon-icon" style="display: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                </svg>
-            </div>
+
             <div class="header-content">
                 <img src="GhostFaceLogo.png" alt="GhostFace Logo" class="logo">
                 <div class="header-text">
@@ -1602,18 +1581,48 @@ function setupFileInputHandlers() {
     document.getElementById('ghostlink-path').addEventListener('change', function(e) {
         const dirName = e.target.files[0] ? e.target.files[0].webkitRelativePath.split('/')[0] : '📁 Select GhostLink Directory';
         document.getElementById('ghostlink-path-text').textContent = dirName;
+        
+        // Add visual feedback
+        const display = this.parentElement.querySelector('.file-input-display');
+        if (display) {
+            if (e.target.files.length > 0) {
+                display.classList.add('active');
+            } else {
+                display.classList.remove('active');
+            }
+        }
     });
 
     // Handle output directory selection
     document.getElementById('output-dir').addEventListener('change', function(e) {
         const dirName = e.target.files[0] ? e.target.files[0].webkitRelativePath.split('/')[0] : '📁 Select Output Directory';
         document.getElementById('output-dir-text').textContent = dirName;
+        
+        // Add visual feedback
+        const display = this.parentElement.querySelector('.file-input-display');
+        if (display) {
+            if (e.target.files.length > 0) {
+                display.classList.add('active');
+            } else {
+                display.classList.remove('active');
+            }
+        }
     });
 
     // Handle directory input for batch processing
     document.getElementById('dir-input').addEventListener('change', function(e) {
         const dirName = e.target.files[0] ? e.target.files[0].webkitRelativePath.split('/')[0] : '📁 Select Directory with Text Files';
         document.getElementById('dir-input-text').textContent = dirName;
+        
+        // Add visual feedback
+        const display = this.parentElement.querySelector('.file-input-display');
+        if (display) {
+            if (e.target.files.length > 0) {
+                display.classList.add('active');
+            } else {
+                display.classList.remove('active');
+            }
+        }
     });
 
 
@@ -1622,23 +1631,64 @@ function setupFileInputHandlers() {
     document.getElementById('batch-input-dir').addEventListener('change', function(e) {
         const dirName = e.target.files[0] ? e.target.files[0].webkitRelativePath.split('/')[0] : '📁 Select Input Directory';
         document.getElementById('batch-input-dir-text').textContent = dirName;
+        
+        // Add visual feedback
+        const display = this.parentElement.querySelector('.file-input-display');
+        if (display) {
+            if (e.target.files.length > 0) {
+                display.classList.add('active');
+            } else {
+                display.classList.remove('active');
+            }
+        }
     });
 
     // Handle batch output directory
     document.getElementById('batch-output-dir').addEventListener('change', function(e) {
         const dirName = e.target.files[0] ? e.target.files[0].webkitRelativePath.split('/')[0] : '📁 Select Output Directory';
         document.getElementById('batch-output-dir-text').textContent = dirName;
+        
+        // Add visual feedback
+        const display = this.parentElement.querySelector('.file-input-display');
+        if (display) {
+            if (e.target.files.length > 0) {
+                display.classList.add('active');
+            } else {
+                display.classList.remove('active');
+            }
+        }
     });
 
     // Handle regular file inputs (unchanged)
     document.getElementById('file-input').addEventListener('change', function(e) {
         const fileName = e.target.files[0] ? e.target.files[0].name : 'Click to select file or drag & drop';
         document.getElementById('file-input-text').textContent = fileName;
+        
+        // Add visual feedback
+        const display = this.parentElement.querySelector('.file-input-display');
+        if (display) {
+            if (e.target.files.length > 0) {
+                display.classList.add('active');
+            } else {
+                display.classList.remove('active');
+            }
+        }
     });
 
     document.getElementById('decode-file-input').addEventListener('change', function(e) {
         const fileName = e.target.files[0] ? e.target.files[0].name : '🎵 Select WAV/MP3/FLAC file to decode';
         document.getElementById('decode-file-text').textContent = fileName;
+        
+        // Add visual feedback
+        const display = this.parentElement.querySelector('.file-input-display');
+        if (display) {
+            if (e.target.files.length > 0) {
+                display.classList.add('active');
+            } else {
+                display.classList.remove('active');
+            }
+        }
+        
         updateDecodeCommandPreview();
     });
 }
@@ -1646,36 +1696,28 @@ function setupFileInputHandlers() {
 // UPDATE THE setupDragAndDrop FUNCTION TO HANDLE DIRECTORIES
 function setupDragAndDrop(inputId, textId) {
     const input = document.querySelector(`#${inputId}`);
-    const dropZone = input.parentNode; // This is the file-input-wrapper
+    const dropZone = input.parentNode;
     const display = dropZone.querySelector('.file-input-display');
-    
-    console.log(`Setting up drag and drop for ${inputId}:`, { input, dropZone, display }); // Debug log
     
     dropZone.addEventListener('dragover', function(e) {
         e.preventDefault();
-        console.log('Dragover event triggered'); // Debug log
         if (display) {
             display.classList.add('dragover');
-            console.log('Added dragover class'); // Debug log
         }
     });
 
     dropZone.addEventListener('dragleave', function(e) {
         e.preventDefault();
-        console.log('Dragleave event triggered'); // Debug log
         if (display) {
             display.classList.remove('dragover');
-            console.log('Removed dragover class'); // Debug log
         }
     });
 
     dropZone.addEventListener('drop', function(e) {
         e.preventDefault();
-        console.log('Drop event triggered'); // Debug log
         if (display) {
             display.classList.remove('dragover');
             display.classList.add('active');
-            console.log('Added active class'); // Debug log
         }
         
         const files = e.dataTransfer.files;
@@ -1863,58 +1905,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check installation status on page load
     setTimeout(checkInstallation, 1000);
     
-    // Initialize theme
-    initializeTheme();
+
     
     // Setup collapsible sections
     setupCollapsibleSections();
 });
 
-// Theme toggle functionality
-function toggleTheme() {
-    const body = document.body;
-    const sunIcon = document.querySelector('.sun-icon');
-    const moonIcon = document.querySelector('.moon-icon');
-    
-    console.log('Theme toggle clicked!'); // Debug log
-    
-    // Force immediate theme change without animations
-    body.style.transition = 'none';
-    
-    if (body.getAttribute('data-theme') === 'light') {
-        body.removeAttribute('data-theme');
-        sunIcon.style.display = 'block';
-        moonIcon.style.display = 'none';
-        localStorage.setItem('theme', 'dark');
-        console.log('Switched to dark mode');
-    } else {
-        body.setAttribute('data-theme', 'light');
-        sunIcon.style.display = 'none';
-        moonIcon.style.display = 'block';
-        localStorage.setItem('theme', 'light');
-        console.log('Switched to light mode');
-    }
-    
-    // Re-enable transitions after a short delay
-    setTimeout(() => {
-        body.style.transition = '';
-    }, 50);
-}
 
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    const sunIcon = document.querySelector('.sun-icon');
-    const moonIcon = document.querySelector('.moon-icon');
-    
-    if (savedTheme === 'light') {
-        document.body.setAttribute('data-theme', 'light');
-        sunIcon.style.display = 'none';
-        moonIcon.style.display = 'block';
-    } else {
-        sunIcon.style.display = 'block';
-        moonIcon.style.display = 'none';
-    }
-}
 
 // Collapsible sections functionality
 function setupCollapsibleSections() {
