@@ -59,10 +59,25 @@ class GhostLinkAPI:
             result = ghostlink_main.main_with_args(args)
             
             if result == 0:
-                # Find the generated file
+                # Find the generated file - prefer the main file (not slow versions)
                 wav_files = list(output_path.glob("*.wav"))
                 if wav_files:
-                    return {"success": True, "file": str(wav_files[0])}
+                    # Sort files by modification time (newest first)
+                    wav_files.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+                    
+                    # Look for the main file (without "slow" in the name) among the newest files
+                    main_file = None
+                    for wav_file in wav_files:
+                        if "slow" not in wav_file.name:
+                            main_file = wav_file
+                            break
+                    
+                    # If no main file found, use the newest file
+                    if not main_file:
+                        main_file = wav_files[0]
+                    
+                    logger.info(f"Selected file: {main_file.name}")
+                    return {"success": True, "file": str(main_file)}
                 else:
                     return {"success": False, "error": "No output file generated"}
             else:
@@ -87,7 +102,22 @@ class GhostLinkAPI:
             if result == 0:
                 wav_files = list(output_path.glob("*.wav"))
                 if wav_files:
-                    return {"success": True, "file": str(wav_files[0])}
+                    # Sort files by modification time (newest first)
+                    wav_files.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+                    
+                    # Look for the main file (without "slow" in the name) among the newest files
+                    main_file = None
+                    for wav_file in wav_files:
+                        if "slow" not in wav_file.name:
+                            main_file = wav_file
+                            break
+                    
+                    # If no main file found, use the newest file
+                    if not main_file:
+                        main_file = wav_files[0]
+                    
+                    logger.info(f"Selected file: {main_file.name}")
+                    return {"success": True, "file": str(main_file)}
                 else:
                     return {"success": False, "error": "No output file generated"}
             else:
@@ -177,6 +207,8 @@ class GhostLinkAPI:
         args.interleave = kwargs.get("interleave", 4)
         args.repeats = kwargs.get("repeats", 2)
         args.ramp = kwargs.get("ramp", 5)
+        args.bit_depth = kwargs.get("bit_depth", 16)
+        args.channels = kwargs.get("channels", 1)
         args.out_name = kwargs.get("out_name")
         args.verbose = kwargs.get("verbose", True)
         return args
@@ -227,9 +259,22 @@ def encode():
             "interleave": data.get("interleave", 4),
             "repeats": data.get("repeats", 2),
             "ramp": data.get("ramp", 5),
-            "out_name": data.get("custom_filename"),
+            "bit_depth": data.get("bit_depth", 16),
+            "channels": data.get("channels", 1),
             "verbose": True
         }
+        
+        # Only add custom filename for text and file modes (not dir mode)
+        if mode in ["text", "file"]:
+            custom_filename = data.get("custom_filename")
+            logger.info(f"Custom filename received: '{custom_filename}' for mode: {mode}")
+            if custom_filename and custom_filename.strip():
+                params["out_name"] = custom_filename
+                logger.info(f"Setting out_name to: '{custom_filename}'")
+            else:
+                logger.info("No custom filename provided or empty")
+        else:
+            logger.info(f"Custom filename not supported for mode: {mode}")
         
         if mode == "text":
             text = data.get("text")
@@ -252,6 +297,7 @@ def encode():
         else:
             return jsonify({"success": False, "error": f"Unknown mode: {mode}"}), 400
         
+        logger.info(f"API returning result: {result}")
         return jsonify(result)
         
     except Exception as e:

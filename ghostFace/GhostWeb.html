@@ -442,7 +442,18 @@
 
         .form-group textarea {
             resize: vertical;
-            min-height: 100px;
+            min-height: 150px;
+            height: 150px;
+            width: 100%;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+        
+        /* Ensure textarea maintains size when text mode is selected */
+        #text-input-group textarea {
+            min-height: 150px !important;
+            height: 150px !important;
+            width: 100% !important;
         }
 
         .checkbox-group {
@@ -774,6 +785,21 @@
                             </div>
                         </div>
                         <div class="help-text">Select your GhostLink installation directory (shared across all operations)</div>
+                        <div class="help-text" style="color: #00ff88; font-size: 12px; margin-top: 5px;">
+                            💡 Your selections are automatically saved and will be remembered next time
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="clearSavedPaths()" style="margin-top: 10px; font-size: 12px; padding: 8px 16px;">
+                            🗑️ Clear Saved Paths
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="testLocalStorage()" style="margin-top: 5px; font-size: 12px; padding: 8px 16px;">
+                            🔍 Test localStorage
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="manualRestore()" style="margin-top: 5px; font-size: 12px; padding: 8px 16px;">
+                            🔄 Manual Restore
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="debugDOM()" style="margin-top: 5px; font-size: 12px; padding: 8px 16px;">
+                            🐛 Debug DOM
+                        </button>
                     </div>
                 </div>
             </div>
@@ -815,7 +841,6 @@
                             <div class="form-group" id="custom-filename-group">
                                 <label>Custom Output Name (Optional)</label>
                                 <input type="text" id="custom-filename" placeholder="e.g., customFilename.wav">
-                                <div class="help-text">Override auto-generated filename</div>
                             </div>
                         </div>
 
@@ -1153,6 +1178,34 @@ function toggleInputMethod() {
     fileGroup.style.display = mode === 'file' ? 'block' : 'none';
     dirGroup.style.display = mode === 'dir' ? 'block' : 'none';
     
+    // Ensure textarea maintains proper size when text mode is selected
+    if (mode === 'text') {
+        setTimeout(() => {
+            const textarea = document.getElementById('text-input');
+            if (textarea) {
+                textarea.style.height = '150px';
+                textarea.style.minHeight = '150px';
+            }
+        }, 10);
+    }
+    
+    // Handle custom filename field visibility and validation
+    const customFilenameGroup = document.getElementById('custom-filename-group');
+    const customFilenameInput = document.getElementById('custom-filename');
+    const helpText = customFilenameGroup.querySelector('.help-text');
+    
+    if (mode === 'dir') {
+        customFilenameInput.disabled = true;
+        customFilenameInput.placeholder = 'Not available for directory mode';
+        if (helpText) {
+            helpText.textContent = 'Custom filenames are not supported when encoding directories';
+            helpText.style.color = '#ff6b6b';
+        }
+    } else {
+        customFilenameInput.disabled = false;
+        customFilenameInput.placeholder = 'e.g., customFilename.wav';
+    }
+    
     updateCommandPreview();
 }
 
@@ -1212,7 +1265,7 @@ function updateCommandPreview() {
     if (preamble !== '0.8') command += ` --preamble ${preamble}`;
     if (interleave !== '4') command += ` --interleave ${interleave}`;
     if (repeats !== '2') command += ` --repeats ${repeats}`;
-    if (customFilename) command += ` --out-name ${customFilename}`;
+    if (customFilename && mode !== 'dir') command += ` --out-name ${customFilename}`;
     
     command += ' -v';
 
@@ -1239,21 +1292,39 @@ function updateDecodeCommandPreview() {
 
 // UPDATE THE executeEncode FUNCTION TO CALL THE API
 async function executeEncode() {
-    // Get GhostLink directory path
+    // Get GhostLink directory path - check file input first, then localStorage
     const ghostlinkPathFiles = document.getElementById('ghostlink-path').files;
-    if (!ghostlinkPathFiles || ghostlinkPathFiles.length === 0) {
-        alert('Please select your GhostLink directory');
-        return;
+    let ghostlinkPath = null;
+    
+    if (ghostlinkPathFiles && ghostlinkPathFiles.length > 0) {
+        ghostlinkPath = ghostlinkPathFiles[0].webkitRelativePath.split('/')[0];
+        console.log('Using GhostLink path from file input:', ghostlinkPath);
+    } else {
+        // Check localStorage for saved path
+        ghostlinkPath = localStorage.getItem('ghostlink_path');
+        if (!ghostlinkPath) {
+            alert('Please select your GhostLink directory');
+            return;
+        }
+        console.log('Using GhostLink path from localStorage:', ghostlinkPath);
     }
-    const ghostlinkPath = ghostlinkPathFiles[0].webkitRelativePath.split('/')[0];
 
-    // Get output directory path
+    // Get output directory path - check file input first, then localStorage
     const outputDirFiles = document.getElementById('output-dir').files;
-    if (!outputDirFiles || outputDirFiles.length === 0) {
-        alert('Please select an output directory');
-        return;
+    let outputDir = null;
+    
+    if (outputDirFiles && outputDirFiles.length > 0) {
+        outputDir = outputDirFiles[0].webkitRelativePath.split('/')[0];
+        console.log('Using output dir from file input:', outputDir);
+    } else {
+        // Check localStorage for saved path
+        outputDir = localStorage.getItem('output_dir');
+        if (!outputDir) {
+            alert('Please select an output directory');
+            return;
+        }
+        console.log('Using output dir from localStorage:', outputDir);
     }
-    const outputDir = outputDirFiles[0].webkitRelativePath.split('/')[0];
 
     const mode = document.getElementById('encode-mode').value;
     
@@ -1274,9 +1345,17 @@ async function executeEncode() {
         ramp: parseFloat(document.getElementById('ramp').value || '5'),
         custom_filename: document.getElementById('custom-filename').value || null
     };
+    
+    // Debug logging
+    console.log('Request data:', requestData);
+    console.log('Custom filename:', requestData.custom_filename);
+    console.log('GhostLink path being sent:', requestData.ghostlink_dir);
+    console.log('Output dir being sent:', requestData.output_dir);
 
     if (mode === 'text') {
         const text = document.getElementById('text-input').value;
+        console.log('Text input length:', text.length);
+        console.log('Text input value:', text);
         if (!text.trim()) {
             alert('Please enter text to encode');
             return;
@@ -1314,11 +1393,13 @@ async function executeEncode() {
         });
 
         const result = await response.json();
+        console.log('API response:', result);
         
         if (result.success) {
             if (mode === 'dir') {
                 alert(`Successfully encoded ${result.files.length} files!\nOutput directory: ${outputDir}`);
             } else {
+                console.log('Success - file path:', result.file);
                 alert(`Successfully encoded!\nOutput file: ${result.file}`);
             }
         } else {
@@ -1335,12 +1416,22 @@ async function executeEncode() {
 
 // UPDATE THE executeDecode FUNCTION TO CALL THE API
 async function executeDecode() {
+    // Get GhostLink directory path - check file input first, then localStorage
     const ghostlinkPathFiles = document.getElementById('ghostlink-path').files;
-    if (!ghostlinkPathFiles || ghostlinkPathFiles.length === 0) {
-        alert('Please select your GhostLink directory');
-        return;
+    let ghostlinkPath = null;
+    
+    if (ghostlinkPathFiles && ghostlinkPathFiles.length > 0) {
+        ghostlinkPath = ghostlinkPathFiles[0].webkitRelativePath.split('/')[0];
+        console.log('Using GhostLink path from file input (decode):', ghostlinkPath);
+    } else {
+        // Check localStorage for saved path
+        ghostlinkPath = localStorage.getItem('ghostlink_path');
+        if (!ghostlinkPath) {
+            alert('Please select your GhostLink directory');
+            return;
+        }
+        console.log('Using GhostLink path from localStorage (decode):', ghostlinkPath);
     }
-    const ghostlinkPath = ghostlinkPathFiles[0].webkitRelativePath.split('/')[0];
     
     const file = document.getElementById('decode-file-input').files[0];
     if (!file) {
@@ -1580,15 +1671,21 @@ function setupFileInputHandlers() {
     // Handle GhostLink directory selection
     document.getElementById('ghostlink-path').addEventListener('change', function(e) {
         const dirName = e.target.files[0] ? e.target.files[0].webkitRelativePath.split('/')[0] : '📁 Select GhostLink Directory';
-        document.getElementById('ghostlink-path-text').textContent = dirName;
+        
+        // Save to localStorage
+        if (e.target.files.length > 0) {
+            localStorage.setItem('ghostlink_path', e.target.files[0].webkitRelativePath.split('/')[0]);
+        }
         
         // Add visual feedback
         const display = this.parentElement.querySelector('.file-input-display');
         if (display) {
             if (e.target.files.length > 0) {
                 display.classList.add('active');
+                display.innerHTML = `<span>${dirName}</span><br><small style="color: #00ff88;">✓ Selected and saved</small>`;
             } else {
                 display.classList.remove('active');
+                display.innerHTML = '<span>📁 Select GhostLink Directory</span>';
             }
         }
     });
@@ -1596,15 +1693,21 @@ function setupFileInputHandlers() {
     // Handle output directory selection
     document.getElementById('output-dir').addEventListener('change', function(e) {
         const dirName = e.target.files[0] ? e.target.files[0].webkitRelativePath.split('/')[0] : '📁 Select Output Directory';
-        document.getElementById('output-dir-text').textContent = dirName;
+        
+        // Save to localStorage
+        if (e.target.files.length > 0) {
+            localStorage.setItem('output_dir', e.target.files[0].webkitRelativePath.split('/')[0]);
+        }
         
         // Add visual feedback
         const display = this.parentElement.querySelector('.file-input-display');
         if (display) {
             if (e.target.files.length > 0) {
                 display.classList.add('active');
+                display.innerHTML = `<span>${dirName}</span><br><small style="color: #00ff88;">✓ Selected and saved</small>`;
             } else {
                 display.classList.remove('active');
+                display.innerHTML = '<span>📁 Select Output Directory</span>';
             }
         }
     });
@@ -1905,11 +2008,139 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check installation status on page load
     setTimeout(checkInstallation, 1000);
     
-
+    // Initialize input method display
+    toggleInputMethod();
     
     // Setup collapsible sections
     setupCollapsibleSections();
+    
+    // Restore saved paths after everything is initialized - try multiple times
+    setTimeout(restoreSavedPaths, 500);
+    setTimeout(restoreSavedPaths, 1000);
+    setTimeout(restoreSavedPaths, 2000);
 });
+
+// Function to restore saved paths from localStorage
+function restoreSavedPaths() {
+    console.log('=== Restoring saved paths ===');
+    
+    const savedGhostLinkPath = localStorage.getItem('ghostlink_path');
+    const savedOutputDir = localStorage.getItem('output_dir');
+    
+    console.log('Saved GhostLink path:', savedGhostLinkPath);
+    console.log('Saved output dir:', savedOutputDir);
+    
+    if (savedGhostLinkPath) {
+        const ghostlinkInput = document.getElementById('ghostlink-path');
+        console.log('GhostLink input element:', ghostlinkInput);
+        
+        if (ghostlinkInput) {
+            const ghostlinkDisplay = ghostlinkInput.parentElement.querySelector('.file-input-display');
+            console.log('GhostLink display element:', ghostlinkDisplay);
+            
+            if (ghostlinkDisplay) {
+                ghostlinkDisplay.classList.add('active');
+                ghostlinkDisplay.innerHTML = `<span>${savedGhostLinkPath}</span><br><small style="color: #00ff88;">✓ Previously selected - click to reselect if needed</small>`;
+                console.log('✅ Restored GhostLink path display');
+            } else {
+                console.log('❌ GhostLink display element not found');
+            }
+        } else {
+            console.log('❌ GhostLink input element not found');
+        }
+    }
+    
+    if (savedOutputDir) {
+        const outputDirInput = document.getElementById('output-dir');
+        console.log('Output dir input element:', outputDirInput);
+        
+        if (outputDirInput) {
+            const outputDirDisplay = outputDirInput.parentElement.querySelector('.file-input-display');
+            console.log('Output dir display element:', outputDirDisplay);
+            
+            if (outputDirDisplay) {
+                outputDirDisplay.classList.add('active');
+                outputDirDisplay.innerHTML = `<span>${savedOutputDir}</span><br><small style="color: #00ff88;">✓ Previously selected - click to reselect if needed</small>`;
+                console.log('✅ Restored output dir display');
+            } else {
+                console.log('❌ Output dir display element not found');
+            }
+        } else {
+            console.log('❌ Output dir input element not found');
+        }
+    }
+    
+    console.log('=== Restore saved paths completed ===');
+}
+
+// Function to clear saved paths
+function clearSavedPaths() {
+    localStorage.removeItem('ghostlink_path');
+    localStorage.removeItem('output_dir');
+    
+    // Reset the display text
+    const ghostlinkDisplay = document.querySelector('#ghostlink-path').parentElement.querySelector('.file-input-display');
+    const outputDirDisplay = document.querySelector('#output-dir').parentElement.querySelector('.file-input-display');
+    
+    if (ghostlinkDisplay) {
+        ghostlinkDisplay.classList.remove('active');
+        ghostlinkDisplay.innerHTML = '<span>📁 Select GhostLink Directory</span>';
+    }
+    
+    if (outputDirDisplay) {
+        outputDirDisplay.classList.remove('active');
+        outputDirDisplay.innerHTML = '<span>📁 Select Output Directory</span>';
+    }
+    
+    // Clear the file inputs
+    document.getElementById('ghostlink-path').value = '';
+    document.getElementById('output-dir').value = '';
+    
+    alert('Saved paths cleared! You can now select new directories.');
+}
+
+// Function to test localStorage functionality
+function testLocalStorage() {
+    const savedGhostLinkPath = localStorage.getItem('ghostlink_path');
+    const savedOutputDir = localStorage.getItem('output_dir');
+    
+    console.log('=== localStorage Test ===');
+    console.log('ghostlink_path:', savedGhostLinkPath);
+    console.log('output_dir:', savedOutputDir);
+    console.log('All localStorage keys:', Object.keys(localStorage));
+    
+    alert(`localStorage Test Results:\n\nGhostLink Path: ${savedGhostLinkPath || 'Not set'}\nOutput Dir: ${savedOutputDir || 'Not set'}\n\nCheck browser console for more details.`);
+}
+
+// Function to manually restore saved paths
+function manualRestore() {
+    console.log('Manual restore triggered');
+    restoreSavedPaths();
+}
+
+// Function to debug DOM structure
+function debugDOM() {
+    console.log('=== Debugging DOM Structure ===');
+    
+    const ghostlinkInput = document.getElementById('ghostlink-path');
+    const outputDirInput = document.getElementById('output-dir');
+    
+    console.log('GhostLink input:', ghostlinkInput);
+    console.log('Output dir input:', outputDirInput);
+    
+    if (ghostlinkInput) {
+        console.log('GhostLink parent:', ghostlinkInput.parentElement);
+        console.log('GhostLink display:', ghostlinkInput.parentElement.querySelector('.file-input-display'));
+    }
+    
+    if (outputDirInput) {
+        console.log('Output dir parent:', outputDirInput.parentElement);
+        console.log('Output dir display:', outputDirInput.parentElement.querySelector('.file-input-display'));
+    }
+    
+    console.log('All file-input-display elements:', document.querySelectorAll('.file-input-display'));
+    console.log('=== DOM Debug Complete ===');
+}
 
 
 
