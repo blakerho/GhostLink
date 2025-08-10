@@ -16,6 +16,7 @@ Examples:
 """
 
 import argparse
+import array
 import binascii
 import hashlib
 import logging
@@ -26,8 +27,9 @@ import struct
 import sys
 import time
 import wave
-from typing import List, Tuple, Iterable
+from typing import List, Tuple, Iterable, Optional
 from .profiles import freq_profile
+from .constants import GIB_MAGIC, HISTORY_DB
 
 # ------------------------
 # Logging
@@ -272,11 +274,42 @@ def write_wav(path: str, sr: int, pcm: bytes, bit_depth: int = 16, channels: int
         
         wf.writeframes(pcm)
 
+
+def stretch_audio(samples: bytes, factor: float) -> bytes:
+    """Resample PCM data to ``factor`` of its original speed.
+
+    ``factor`` < 1.0 slows the audio. Linear interpolation is used between
+    adjacent samples to avoid artifacts.
+    """
+    if factor <= 0:
+        raise ValueError("factor must be positive")
+
+    src = array.array("h")
+    src.frombytes(samples)
+    n = len(src)
+    if n == 0:
+        return b""
+
+    out_len = int(round(n / factor))
+    out = array.array("h", [0] * out_len)
+    for i in range(out_len):
+        pos = i * factor
+        i0 = int(math.floor(pos))
+        frac = pos - i0
+        if i0 >= n - 1:
+            sample = src[-1]
+        else:
+            s0 = src[i0]
+            s1 = src[i0 + 1]
+            sample = int(round(s0 + (s1 - s0) * frac))
+        out[i] = sample
+    return out.tobytes()
+
 # ------------------------
 # Framing / payload
 # ------------------------
 def build_payload(user_bytes: bytes) -> bytes:
-    magic = b"GL1"
+    magic = GIB_MAGIC
     length = struct.pack(">I", len(user_bytes))
     crc = struct.pack(">I", binascii.crc32(user_bytes) & 0xFFFFFFFF)
     return magic + length + user_bytes + crc
@@ -369,6 +402,8 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
                         samplerate: int, baud: float, amp: float,
                         dense: bool, mix_profile: str,
                         gap_ms: float, preamble_s: float, interleave_depth: int,
+                        repeats: int, ramp_ms: float,
+                        out_name: Optional[str] = None) -> Tuple[str, bool]:
                         repeats: int, ramp_ms: float, bit_depth: int = 16, channels: int = 1) -> Tuple[str, bool]:
     """
     Returns (output_path, skipped_by_dedupe)
@@ -377,8 +412,8 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
     framed_hash = sha256_hex(payload)
     crc_hex = f"{binascii.crc32(user_bytes) & 0xFFFFFFFF:08x}"
 
-    db_path = os.path.join(out_dir, "ghostlink_history.db")
     ensure_dir(out_dir)
+    db_path = os.path.abspath(HISTORY_DB)
     db_init(db_path)
 
     exists, prior_path = db_has_hash(db_path, framed_hash)
@@ -404,6 +439,13 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
         bits = interleave(bits, interleave_depth)
     symbols = bits_to_symbols(bits, order)
 
+    midi_notes: List[int] = []
+    for _ in range(max(1, repeats)):
+        for sym in symbols:
+            freq = freqs[sym]
+            note = int(round(69 + 12 * math.log2(freq / 440.0)))
+            midi_notes.append(note)
+
     total_symbols = len(symbols) * max(1, repeats)
     est_s = total_symbols / baud + preamble_s
     logging.info(f"[i] Mode={'8-FSK' if dense else '4-FSK'} | Freqs={','.join(f'{f:.0f}' for f in freqs)}Hz "
@@ -423,9 +465,14 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
                                        gap_ms=gap_ms, ramp_ms=ramp_ms, bit_depth=bit_depth)
         pcm.extend(tones)
 
-    # Filename includes short hash for reproducibility
+    # Determine output filename
     safe_hint = "".join(c for c in base_name_hint if c.isalnum() or c in ("-", "_"))[:40] or "msg"
-    out_name = f"{safe_hint}_{framed_hash[:12]}.wav"
+    if out_name:
+        if not out_name.lower().endswith(".wav"):
+            out_name = f"{out_name}.wav"
+    else:
+        out_name = f"{safe_hint}_{framed_hash[:12]}.wav"
+    logging.info(f"[i] Output filename: {out_name}")
     out_path = os.path.join(out_dir, out_name)
 
     try:
@@ -433,6 +480,45 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
     except Exception as e:
         logging.error(f"[x] Failed to write WAV: {e}")
         raise
+
+    # Write MIDI sequence mirroring the symbol frequencies
+    try:
+        import mido
+        mid = mido.MidiFile()
+        track = mido.MidiTrack()
+        mid.tracks.append(track)
+        track.append(mido.MetaMessage("set_tempo", tempo=1_000_000))
+        dur_ticks = max(1, round(mid.ticks_per_beat / baud))
+        for note in midi_notes:
+            track.append(mido.Message("note_on", note=note, velocity=64, time=0))
+            track.append(mido.Message("note_off", note=note, velocity=64, time=dur_ticks))
+        mid_path = os.path.splitext(out_path)[0] + ".mid"
+        mid.save(mid_path)
+    except Exception as e:
+        logging.warning(f"[!] Failed to write MIDI: {e}")
+
+    # Read back the written WAV for further processing
+    try:
+        with wave.open(out_path, "rb") as wf:
+            read_sr = wf.getframerate()
+            channels = wf.getnchannels()
+            pcm_data = wf.readframes(wf.getnframes())
+    except Exception as e:
+        logging.error(f"[x] Failed to read back WAV: {e}")
+        raise
+
+    if channels != 1:
+        logging.warning(f"[!] Unexpected channel count: {channels}")
+
+    # Generate slowed variants
+    for factor, suffix in {0.75: "slow25", 0.5: "slow50", 0.25: "slow100", 0.1: "slow1000"}.items():
+        try:
+            stretched = stretch_audio(pcm_data, factor)
+            slow_path = os.path.splitext(out_path)[0] + f"_{suffix}.wav"
+            write_wav(slow_path, read_sr, stretched)
+            logging.info(f"[i] Wrote: {os.path.abspath(slow_path)} (speed={factor:.2f})")
+        except Exception as e:
+            logging.warning(f"[!] Failed to write slowed WAV {suffix}: {e}")
 
     # Log run
     try:
@@ -450,7 +536,7 @@ def encode_bytes_to_wav(user_bytes: bytes, out_dir: str, base_name_hint: str,
 # ------------------------
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="GhostLink: encode text into dense/sparse FSK audio for stealth embedding.",
+        description="Gibberlink: encode text into dense/sparse FSK audio for stealth embedding.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     # Positional: mode, input, outdir (per user preference)
@@ -470,6 +556,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--interleave", type=int, default=4, help="Interleave depth (1=off). Helps against masking.")
     p.add_argument("--repeats", type=int, default=2, help="Repeat the encoded stream N times (>=1).")
     p.add_argument("--ramp", type=float, default=5.0, help="Raised-cosine ramp per symbol (ms).")
+    p.add_argument("--out-name", help="Explicit output WAV filename (text/file modes only).")
     p.add_argument("--verbose", "-v", action="store_true", help="Verbose logging.")
     # Audio format options
     p.add_argument("--bit-depth", choices=[16, 24, 32], type=int, default=16, 
@@ -506,6 +593,9 @@ def validate_args(args: argparse.Namespace) -> None:
     if args.mode in ("file", "dir") and not os.path.exists(args.input):
         logging.error(f"[x] Input path does not exist: {args.input}")
         sys.exit(2)
+    if args.out_name and args.mode == "dir":
+        logging.error("[x] --out-name is only valid with 'text' or 'file' modes.")
+        sys.exit(2)
 
 def iter_inputs(mode: str, input_arg: str) -> Iterable[Tuple[str, bytes]]:
     if mode == "text":
@@ -528,8 +618,8 @@ def iter_inputs(mode: str, input_arg: str) -> Iterable[Tuple[str, bytes]]:
             except Exception as e:
                 logging.error(f"[x] Skipping '{fp}': {e}")
 
-def main() -> int:
-    args = parse_args()
+def main_with_args(args) -> int:
+    """Main function that accepts pre-parsed arguments (for API use)"""
     setup_logging(args.verbose)
     validate_args(args)
 
@@ -553,6 +643,7 @@ def main() -> int:
                 interleave_depth=args.interleave,
                 repeats=args.repeats,
                 ramp_ms=args.ramp,
+                out_name=args.out_name
                 bit_depth=args.bit_depth,
                 channels=args.channels
             )
@@ -568,6 +659,10 @@ def main() -> int:
 
     logging.info(f"[i] Done. Created={made} Skipped={skipped}")
     return 0
+
+def main() -> int:
+    args = parse_args()
+    return main_with_args(args)
 
 if __name__ == "__main__":
     sys.exit(main())

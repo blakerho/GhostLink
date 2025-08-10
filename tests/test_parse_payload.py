@@ -6,10 +6,10 @@ from pathlib import Path
 
 
 def test_parse_payload_bad_magic():
-    payload = build_payload(b"hi")
-    bad = b"BAD" + payload[3:]
+    payload = bytearray(build_payload(b"hi"))
+    payload[:3] = b"BAD"
     with pytest.raises(ValueError, match="bad magic"):
-        parse_payload(bad)
+        parse_payload(bytes(payload))
 
 
 def test_parse_payload_truncated():
@@ -43,6 +43,7 @@ def test_decode_wav_surfaces_corruption(tmp_path):
         repeats=1,
         ramp_ms=5.0,
     )
+    assert Path(path).with_suffix(".mid").exists()
 
     data = bytearray(Path(path).read_bytes())
     for i in range(44, len(data)):

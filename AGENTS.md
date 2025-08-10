@@ -3,10 +3,10 @@
 ## `AGENTS.md`
 
 ```markdown
-# GhostLink Agents — How the Tones Operate
+# Gibberlink Agents — How the Tones Operate
 
 ## Who Are the Agents?
-Each GhostLink **carrier frequency** is an "agent" in your audio.  
+Each Gibberlink **carrier frequency** is an "agent" in your audio.
 They each have a specific job: to carry **symbols** of your hidden message without attracting attention.
 
 - In **8-FSK mode**, there are eight agents.
@@ -58,12 +58,18 @@ In the field, more agents means:
 ---
 
 ## Agent Identification in Output Files
-Each `.wav` file name contains the **first 12 hex characters** of the SHA-256 payload hash.  
+Each `.wav` file name contains the **first 12 hex characters** of the SHA-256 payload hash.
 This is the agent team’s mission ID — unique for each message.
+
+After a mission, agents also leave behind slowed briefings and a MIDI transcript:
+
+- `_slow25.wav`, `_slow50.wav`, `_slow100.wav`, `_slow1000.wav` stretch the run by 4/3×, 2×, 4×, and ~10× for easier analysis.
+- A matching `.mid` file documents each carrier hop.
+- Use `--out-name` to choose the base filename; all companions inherit the same prefix.
 
 ---
 
 ## Final Word
-Think of GhostLink’s tones as an **undercover team**:  
+Think of Gibberlink’s tones as an **undercover team**:
 They slip into your track, complete their mission quietly, and leave without anyone knowing they were there — unless the right decoder calls them out.
 

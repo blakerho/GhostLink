@@ -17,6 +17,7 @@ import sys
 import os
 from typing import List
 from .profiles import freq_profile
+from .constants import GIB_MAGIC
 
 # ------------------------
 # Logging
@@ -180,7 +181,7 @@ def decode_symbols(symbols: List[int], order: int, interleave_depth: int) -> byt
 def parse_payload(data: bytes) -> bytes:
     if len(data) < 3 + 4 + 4:
         raise ValueError("payload too short")
-    if data[:3] != b"GL1":
+    if data[:3] != GIB_MAGIC:
         raise ValueError("bad magic")
     length = struct.unpack(">I", data[3:7])[0]
     need = 3 + 4 + length + 4
@@ -218,7 +219,7 @@ def decode_wav(path: str, baud: float, dense: bool, mix_profile: str,
 # ------------------------
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="GhostLink decoder: recover text from FSK audio.",
+        description="Gibberlink decoder: recover text from FSK audio.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     p.add_argument("wav", help="Input WAV file")
@@ -246,11 +247,59 @@ def validate_args(args: argparse.Namespace) -> None:
         args.dense = True
 
 # ------------------------
+# Output sanitization
+# ------------------------
+def _strip_rtf(text: str) -> str:
+    """Best-effort removal of RTF control words and groups.
+
+    This is not a full RTF parser but suffices for basic lyric payloads
+    that may have been authored in editors like TextEdit which default to
+    RTF. Control words (e.g. ``\b`` or ``\fs40``) and grouping braces are
+    removed. Hex escapes of the form ``\'hh`` are converted to the
+    corresponding character.
+    """
+
+    import re
+
+    def hex_to_char(match: re.Match[str]) -> str:
+        try:
+            return bytes.fromhex(match.group(1)).decode("latin-1")
+        except Exception:
+            return ""
+
+    # Replace hex escapes first so that non-ASCII characters can be filtered
+    text = re.sub(r"\\'([0-9a-fA-F]{2})", hex_to_char, text)
+    # Drop remaining control words (e.g. \b, \fs40) and any numeric parameter
+    text = re.sub(r"\\[a-zA-Z]+-?\d* ?", "", text)
+    # Remove braces which delimit RTF groups
+    text = text.replace("{", "").replace("}", "")
+    # Leftover backslashes are not meaningful in plain text
+    return text.replace("\\", "")
+
+
+def ascii_only(data: bytes) -> str:
+    """Decode *data* to a printable ASCII string.
+
+    ``decode_wav`` returns the raw payload bytes.  For CLI display we want
+    to present something a human can read, ideally stripping any accidental
+    RTF markup and removing non-ASCII characters.
+    """
+
+    try:
+        text = data.decode("utf-8")
+    except Exception:
+        text = data.decode("latin-1", errors="ignore")
+    if text.lstrip().startswith("{\\rtf"):
+        text = _strip_rtf(text)
+    # Finally ensure only ASCII characters remain
+    return text.encode("ascii", "ignore").decode("ascii").strip()
+
+# ------------------------
 # Main
 # ------------------------
-def main() -> int:
+def main_with_args(args) -> int:
+    """Main function that accepts pre-parsed arguments (for API use)"""
     try:
-        args = parse_args()
         setup_logging(args.verbose)
         validate_args(args)
         msg = decode_wav(
@@ -262,11 +311,7 @@ def main() -> int:
             interleave_depth=args.interleave,
             repeats=args.repeats,
         )
-        try:
-            text = msg.decode("utf-8")
-        except Exception:
-            text = msg.hex()
-        print(text)
+        print(ascii_only(msg))
         return 0
     except KeyboardInterrupt:
         logging.error("[x] Interrupted by user.")
@@ -274,6 +319,10 @@ def main() -> int:
     except Exception as e:
         logging.error(f"[x] Decode failed: {e}")
         return 2
+
+def main() -> int:
+    args = parse_args()
+    return main_with_args(args)
 
 if __name__ == "__main__":
     sys.exit(main())
