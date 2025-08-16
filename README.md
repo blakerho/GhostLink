@@ -62,7 +62,7 @@ For the easiest experience, use our modern web interface with one-click app:
 ### **Option 2: Manual Launch (All Platforms)**
 1. **Clone and navigate**
    ```bash
-   git clone https://github.com/13alvone/GhostLink.git
+   git clone https://github.com/blakerho/GhostLink.git
    cd GhostLink/ghostFace
    ```
 
